@@ -1,9 +1,10 @@
-import anthropic
+import google.generativeai as genai
 from typing import List, Optional, Dict, Any
+import json
 
 class AIGenerator:
-    """Handles interactions with Anthropic's Claude API for generating responses"""
-    
+    """Handles interactions with Google's Gemini API for generating responses"""
+
     # Static system prompt to avoid rebuilding on each call
     SYSTEM_PROMPT = """ You are an AI assistant specialized in course materials and educational content with access to a comprehensive search tool for course information.
 
@@ -28,108 +29,155 @@ All responses must be:
 4. **Example-supported** - Include relevant examples when they aid understanding
 Provide only the direct answer to what was asked.
 """
-    
+
     def __init__(self, api_key: str, model: str):
-        self.client = anthropic.Anthropic(api_key=api_key)
-        self.model = model
-        
-        # Pre-build base API parameters
-        self.base_params = {
-            "model": self.model,
+        genai.configure(api_key=api_key)
+        self.model = genai.GenerativeModel(
+            model_name=model,
+            system_instruction=self.SYSTEM_PROMPT
+        )
+
+        # Pre-build base generation config
+        self.generation_config = {
             "temperature": 0,
-            "max_tokens": 800
+            "max_output_tokens": 800,
         }
-    
+
     def generate_response(self, query: str,
                          conversation_history: Optional[str] = None,
                          tools: Optional[List] = None,
                          tool_manager=None) -> str:
         """
         Generate AI response with optional tool usage and conversation context.
-        
+
         Args:
             query: The user's question or request
             conversation_history: Previous messages for context
             tools: Available tools the AI can use
             tool_manager: Manager to execute tools
-            
+
         Returns:
             Generated response as string
         """
-        
-        # Build system content efficiently - avoid string ops when possible
-        system_content = (
-            f"{self.SYSTEM_PROMPT}\n\nPrevious conversation:\n{conversation_history}"
-            if conversation_history 
-            else self.SYSTEM_PROMPT
-        )
-        
-        # Prepare API call parameters efficiently
-        api_params = {
-            **self.base_params,
-            "messages": [{"role": "user", "content": query}],
-            "system": system_content
-        }
-        
-        # Add tools if available
+
+        # Build context with history if available
+        if conversation_history:
+            full_query = f"Previous conversation:\n{conversation_history}\n\nCurrent question: {query}"
+        else:
+            full_query = query
+
+        # Convert tools to Gemini format if provided
+        gemini_tools = None
         if tools:
-            api_params["tools"] = tools
-            api_params["tool_choice"] = {"type": "auto"}
-        
-        # Get response from Claude
-        response = self.client.messages.create(**api_params)
-        
-        # Handle tool execution if needed
-        if response.stop_reason == "tool_use" and tool_manager:
-            return self._handle_tool_execution(response, api_params, tool_manager)
-        
-        # Return direct response
-        return response.content[0].text
-    
-    def _handle_tool_execution(self, initial_response, base_params: Dict[str, Any], tool_manager):
+            gemini_tools = self._convert_tools_to_gemini_format(tools)
+
+        # Create chat session
+        chat = self.model.start_chat(history=[])
+
+        # Generate response
+        try:
+            response = chat.send_message(
+                full_query,
+                generation_config=self.generation_config,
+                tools=gemini_tools
+            )
+
+            # Check if model wants to use tools
+            if response.candidates[0].content.parts:
+                for part in response.candidates[0].content.parts:
+                    # Check if this part is a function call
+                    if hasattr(part, 'function_call') and part.function_call:
+                        return self._handle_tool_execution(
+                            chat,
+                            response,
+                            tool_manager
+                        )
+
+            # Return direct text response
+            return response.text
+
+        except Exception as e:
+            return f"Error generating response: {str(e)}"
+
+    def _convert_tools_to_gemini_format(self, anthropic_tools: List):
+        """Convert Anthropic tool format to Gemini function declarations"""
+        from google.generativeai.types import FunctionDeclaration, Tool
+
+        function_declarations = []
+
+        for tool in anthropic_tools:
+            # Convert Anthropic tool schema to Gemini function declaration
+            func_decl = FunctionDeclaration(
+                name=tool["name"],
+                description=tool["description"],
+                parameters=tool["input_schema"]
+            )
+            function_declarations.append(func_decl)
+
+        return [Tool(function_declarations=function_declarations)]
+
+    def _handle_tool_execution(self, chat, initial_response, tool_manager):
         """
         Handle execution of tool calls and get follow-up response.
-        
+
         Args:
-            initial_response: The response containing tool use requests
-            base_params: Base API parameters
+            chat: The chat session
+            initial_response: The response containing function calls
             tool_manager: Manager to execute tools
-            
+
         Returns:
             Final response text after tool execution
         """
-        # Start with existing messages
-        messages = base_params["messages"].copy()
-        
-        # Add AI's tool use response
-        messages.append({"role": "assistant", "content": initial_response.content})
-        
-        # Execute all tool calls and collect results
-        tool_results = []
-        for content_block in initial_response.content:
-            if content_block.type == "tool_use":
-                tool_result = tool_manager.execute_tool(
-                    content_block.name, 
-                    **content_block.input
-                )
-                
-                tool_results.append({
-                    "type": "tool_result",
-                    "tool_use_id": content_block.id,
-                    "content": tool_result
+        function_calls = []
+
+        # Extract all function calls
+        for part in initial_response.candidates[0].content.parts:
+            if hasattr(part, 'function_call') and part.function_call:
+                function_calls.append(part.function_call)
+
+        # Execute tools and collect results
+        function_responses = []
+
+        for fc in function_calls:
+            # Extract function name and arguments
+            func_name = fc.name
+            func_args = dict(fc.args)
+
+            # Execute the tool
+            try:
+                result = tool_manager.execute_tool(func_name, **func_args)
+
+                function_responses.append({
+                    "name": func_name,
+                    "response": {"result": result}
                 })
-        
-        # Add tool results as single message
-        if tool_results:
-            messages.append({"role": "user", "content": tool_results})
-        
-        # Prepare final API call without tools
-        final_params = {
-            **self.base_params,
-            "messages": messages,
-            "system": base_params["system"]
-        }
-        
-        # Get final response
-        final_response = self.client.messages.create(**final_params)
-        return final_response.content[0].text
+            except Exception as e:
+                function_responses.append({
+                    "name": func_name,
+                    "response": {"error": str(e)}
+                })
+
+        # Send function responses back to model
+        try:
+            # Build function response parts
+            response_parts = []
+            for fr in function_responses:
+                response_parts.append(
+                    genai.protos.Part(
+                        function_response=genai.protos.FunctionResponse(
+                            name=fr["name"],
+                            response=fr["response"]
+                        )
+                    )
+                )
+
+            # Get final response
+            final_response = chat.send_message(
+                response_parts,
+                generation_config=self.generation_config
+            )
+
+            return final_response.text
+
+        except Exception as e:
+            return f"Error processing tool results: {str(e)}"
