@@ -5,7 +5,7 @@
     padding: 0;
 }
 
-/* CSS Variables */
+/* CSS Variables - Dark Theme (Default) */
 :root {
     --primary-color: #2563eb;
     --primary-hover: #1d4ed8;
@@ -21,6 +21,24 @@
     --radius: 12px;
     --focus-ring: rgba(37, 99, 235, 0.2);
     --welcome-bg: #1e3a5f;
+    --welcome-border: #2563eb;
+}
+
+/* Light Theme Variables */
+[data-theme="light"] {
+    --primary-color: #2563eb;
+    --primary-hover: #1d4ed8;
+    --background: #f8fafc;
+    --surface: #ffffff;
+    --surface-hover: #f1f5f9;
+    --text-primary: #1e293b;
+    --text-secondary: #64748b;
+    --border-color: #e2e8f0;
+    --user-message: #2563eb;
+    --assistant-message: #f1f5f9;
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --focus-ring: rgba(37, 99, 235, 0.2);
+    --welcome-bg: #eff6ff;
     --welcome-border: #2563eb;
 }
 
@@ -220,29 +238,107 @@ header h1 {
 
 /* Collapsible Sources */
 .sources-collapsible {
-    margin-top: 0.5rem;
-    font-size: 0.75rem;
+    margin-top: 0.75rem;
+    font-size: 0.85rem;
     color: var(--text-secondary);
 }
 
 .sources-collapsible summary {
     cursor: pointer;
-    padding: 0.25rem 0.5rem;
+    padding: 0.5rem 0.75rem;
     user-select: none;
-    font-weight: 500;
+    font-weight: 600;
+    background: rgba(37, 99, 235, 0.08);
+    border-radius: 6px;
+    transition: all 0.2s ease;
 }
 
 .sources-collapsible summary:hover {
-    color: var(--text-primary);
+    color: var(--primary-color);
+    background: rgba(37, 99, 235, 0.12);
 }
 
 .sources-collapsible[open] summary {
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.75rem;
+    color: var(--primary-color);
 }
 
 .sources-content {
-    padding: 0 0.5rem 0.25rem 1.5rem;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+/* Source Item Styles */
+.source-item {
+    margin: 0;
+}
+
+.source-item-no-link {
+    padding: 0.625rem 0.875rem;
+    background: var(--background);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+}
+
+/* Source Link Styles */
+.source-link {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.625rem 0.875rem;
+    background: var(--background);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.source-link:hover {
+    background: var(--surface-hover);
+    border-color: var(--primary-color);
+    transform: translateX(4px);
+    box-shadow: -2px 0 0 0 var(--primary-color);
+}
+
+.source-link:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+.source-icon {
+    font-size: 1.1rem;
+    flex-shrink: 0;
+}
+
+.source-title {
+    flex: 1;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    color: var(--text-primary);
+}
+
+.source-link:hover .source-title {
+    color: var(--primary-color);
+}
+
+.external-icon {
+    font-size: 0.875rem;
     color: var(--text-secondary);
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+
+.source-link:hover .external-icon {
+    color: var(--primary-color);
+    transform: translate(2px, -2px);
 }
 
 /* Markdown formatting styles */
@@ -601,6 +697,43 @@ details[open] .suggested-header::before {
     text-transform: none;
 }
 
+/* New Conversation Button */
+.new-conversation-btn {
+    width: 100%;
+    padding: 0.5rem 0;
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.new-conversation-btn:focus {
+    outline: none;
+    color: var(--primary-color);
+}
+
+.new-conversation-btn:hover {
+    color: var(--primary-color);
+}
+
+.new-conversation-btn:active {
+    color: var(--primary-color);
+}
+
+.new-conversation-btn .btn-icon {
+    font-size: 0.75rem;
+    flex-shrink: 0;
+}
+
 /* Suggested Questions in Sidebar */
 .suggested-items {
     display: flex;
@@ -715,4 +848,51 @@ details[open] .suggested-header::before {
     .sidebar {
         width: 280px;
     }
+}
+
+/* Theme Toggle Button */
+.theme-toggle {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border-color);
+    padding: 0.625rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-primary);
+}
+
+.theme-toggle:hover {
+    background: var(--surface-hover);
+    border-color: var(--primary-color);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow);
+}
+
+.theme-toggle:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--focus-ring);
+}
+
+/* Theme icon visibility */
+[data-theme="dark"] .sun-icon {
+    display: block;
+}
+
+[data-theme="dark"] .moon-icon {
+    display: none;
+}
+
+[data-theme="light"] .sun-icon {
+    display: none;
+}
+
+[data-theme="light"] .moon-icon {
+    display: block;
 }

@@ -5,7 +5,7 @@ const API_URL = '/api';
 let currentSessionId = null;
 
 // DOM elements
-let chatMessages, chatInput, sendButton, totalCourses, courseTitles;
+let chatMessages, chatInput, sendButton, totalCourses, courseTitles, newConversationBtn, themeToggle;
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
@@ -15,7 +15,10 @@ document.addEventListener('DOMContentLoaded', () => {
     sendButton = document.getElementById('sendButton');
     totalCourses = document.getElementById('totalCourses');
     courseTitles = document.getElementById('courseTitles');
-    
+    newConversationBtn = document.getElementById('newConversationBtn');
+    themeToggle = document.getElementById('themeToggle');
+
+    initTheme();
     setupEventListeners();
     createNewSession();
     loadCourseStats();
@@ -28,8 +31,23 @@ function setupEventListeners() {
     chatInput.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') sendMessage();
     });
-    
-    
+
+    // New conversation button
+    newConversationBtn.addEventListener('click', () => {
+        createNewSession();
+    });
+
+    // Theme toggle
+    themeToggle.addEventListener('click', toggleTheme);
+
+    // Keyboard shortcut for theme toggle: Ctrl/Cmd + Shift + T
+    document.addEventListener('keydown', (e) => {
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'T') {
+            e.preventDefault();
+            toggleTheme();
+        }
+    });
+
     // Suggested questions
     document.querySelectorAll('.suggested-item').forEach(button => {
         button.addEventListener('click', (e) => {
@@ -115,25 +133,45 @@ function addMessage(content, type, sources = null, isWelcome = false) {
     const messageDiv = document.createElement('div');
     messageDiv.className = `message ${type}${isWelcome ? ' welcome-message' : ''}`;
     messageDiv.id = `message-${messageId}`;
-    
+
     // Convert markdown to HTML for assistant messages
     const displayContent = type === 'assistant' ? marked.parse(content) : escapeHtml(content);
-    
+
     let html = `<div class="message-content">${displayContent}</div>`;
-    
+
     if (sources && sources.length > 0) {
+        // Format sources as a styled list
+        const sourceItems = sources.map(source => {
+            if (source.link && source.link.trim() !== '') {
+                // Create clickable link that opens in new window
+                return `<div class="source-item">
+                    <a href="${escapeHtml(source.link)}" target="_blank" rel="noopener noreferrer" class="source-link">
+                        <span class="source-icon">📄</span>
+                        <span class="source-title">${escapeHtml(source.title)}</span>
+                        <span class="external-icon">↗</span>
+                    </a>
+                </div>`;
+            } else {
+                // No link available, just show the title
+                return `<div class="source-item source-item-no-link">
+                    <span class="source-icon">📄</span>
+                    <span class="source-title">${escapeHtml(source.title)}</span>
+                </div>`;
+            }
+        }).join('');
+
         html += `
             <details class="sources-collapsible">
-                <summary class="sources-header">Sources</summary>
-                <div class="sources-content">${sources.join(', ')}</div>
+                <summary class="sources-header">Sources (${sources.length})</summary>
+                <div class="sources-content">${sourceItems}</div>
             </details>
         `;
     }
-    
+
     messageDiv.innerHTML = html;
     chatMessages.appendChild(messageDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
-    
+
     return messageId;
 }
 
@@ -144,9 +182,34 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// Removed removeMessage function - no longer needed since we handle loading differently
+// Theme Management
+function initTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+}
 
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+}
+
+// Session Management
 async function createNewSession() {
+    // Clear backend session if exists
+    if (currentSessionId) {
+        try {
+            await fetch(`${API_URL}/clear-session`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({session_id: currentSessionId})
+            });
+        } catch (error) {
+            console.error('Error clearing session:', error);
+        }
+    }
+
     currentSessionId = null;
     chatMessages.innerHTML = '';
     addMessage('Welcome to the Course Materials Assistant! I can help you with questions about courses, lessons and specific content. What would you like to know?', 'assistant', null, true);
