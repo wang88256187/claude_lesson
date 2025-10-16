@@ -36,7 +36,8 @@
       "Bash(curl:*)",
       "mcp__playwright__browser_click",
       "mcp__playwright__browser_snapshot",
-      "mcp__playwright__browser_type"
+      "mcp__playwright__browser_type",
+      "Bash(git commit -m \"$(cat <<''EOF''\n添加 Claude Code 配置和 Playwright 截图\n\n- 添加 .claude/commands/implement-feature.md 自定义命令\n- 添加 .claude/settings.local.json 本地配置\n- 添加 .playwright-mcp/ 目录下的 UI 测试截图\n  - 主题切换前后对比图\n  - 新对话功能截图\n  - 聊天界面截图\n\n这些文件用于 Claude Code 开发环境配置和 UI 功能验证\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n)\")"
     ],
     "deny": [],
     "ask": []
