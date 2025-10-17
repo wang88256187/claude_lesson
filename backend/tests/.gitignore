@@ -1,0 +1,28 @@
+# Pytest缓存
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# 测试数据库
+test_chroma_db/
+*.db
+*.sqlite
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 日志文件
+*.log
+test_logs/
+
+# 临时文件
+*.tmp
+temp_*/
