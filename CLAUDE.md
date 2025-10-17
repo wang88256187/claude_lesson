@@ -57,6 +57,60 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 开发命令
 
+### 安装开发依赖
+
+**首次设置：**
+```bash
+# 安装开发工具（Windows conda 环境）
+conda activate ragchatbot
+pip install -e ".[dev]"
+
+# 或单独安装
+pip install black flake8 isort pre-commit
+```
+
+### 代码质量工具
+
+项目使用以下工具确保代码质量：
+- **Black** - 自动代码格式化（行长度 88）
+- **isort** - 导入语句排序
+- **flake8** - 代码风格和质量检查
+- **pre-commit** - Git 提交前自动检查
+
+**格式化代码：**
+```bash
+# Windows
+format_code.bat
+
+# Unix/Linux/Mac
+chmod +x format_code.sh
+./format_code.sh
+```
+
+**运行质量检查：**
+```bash
+# Windows
+quality_check.bat
+
+# Unix/Linux/Mac
+chmod +x quality_check.sh
+./quality_check.sh
+```
+
+**手动运行工具：**
+```bash
+# 格式化代码
+black backend
+isort backend
+
+# 检查代码质量
+flake8 backend
+
+# 设置 pre-commit hooks
+pre-commit install
+pre-commit run --all-files
+```
+
 ### 运行应用
 
 **Windows（推荐用于当前环境）：**

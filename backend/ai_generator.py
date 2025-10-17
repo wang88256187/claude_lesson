@@ -1,6 +1,7 @@
+from typing import List, Optional
+
 import google.generativeai as genai
-from typing import List, Optional, Dict, Any
-import json
+
 
 class AIGenerator:
     """Handles interactions with Google's Gemini API for generating responses"""
@@ -44,8 +45,7 @@ Provide only the direct answer to what was asked.
     def __init__(self, api_key: str, model: str):
         genai.configure(api_key=api_key)
         self.model = genai.GenerativeModel(
-            model_name=model,
-            system_instruction=self.SYSTEM_PROMPT
+            model_name=model, system_instruction=self.SYSTEM_PROMPT
         )
 
         # Pre-build base generation config
@@ -54,10 +54,13 @@ Provide only the direct answer to what was asked.
             "max_output_tokens": 800,
         }
 
-    def generate_response(self, query: str,
-                         conversation_history: Optional[str] = None,
-                         tools: Optional[List] = None,
-                         tool_manager=None) -> str:
+    def generate_response(
+        self,
+        query: str,
+        conversation_history: Optional[str] = None,
+        tools: Optional[List] = None,
+        tool_manager=None,
+    ) -> str:
         """
         Generate AI response with optional tool usage and conversation context.
 
@@ -88,21 +91,15 @@ Provide only the direct answer to what was asked.
         # Generate response
         try:
             response = chat.send_message(
-                full_query,
-                generation_config=self.generation_config,
-                tools=gemini_tools
+                full_query, generation_config=self.generation_config, tools=gemini_tools
             )
 
             # Check if model wants to use tools
             if response.candidates[0].content.parts:
                 for part in response.candidates[0].content.parts:
                     # Check if this part is a function call
-                    if hasattr(part, 'function_call') and part.function_call:
-                        return self._handle_tool_execution(
-                            chat,
-                            response,
-                            tool_manager
-                        )
+                    if hasattr(part, "function_call") and part.function_call:
+                        return self._handle_tool_execution(chat, response, tool_manager)
 
             # Return direct text response
             return response.text
@@ -121,7 +118,7 @@ Provide only the direct answer to what was asked.
             func_decl = FunctionDeclaration(
                 name=tool["name"],
                 description=tool["description"],
-                parameters=tool["input_schema"]
+                parameters=tool["input_schema"],
             )
             function_declarations.append(func_decl)
 
@@ -143,7 +140,7 @@ Provide only the direct answer to what was asked.
 
         # Extract all function calls
         for part in initial_response.candidates[0].content.parts:
-            if hasattr(part, 'function_call') and part.function_call:
+            if hasattr(part, "function_call") and part.function_call:
                 function_calls.append(part.function_call)
 
         # Execute tools and collect results
@@ -158,15 +155,13 @@ Provide only the direct answer to what was asked.
             try:
                 result = tool_manager.execute_tool(func_name, **func_args)
 
-                function_responses.append({
-                    "name": func_name,
-                    "response": {"result": result}
-                })
+                function_responses.append(
+                    {"name": func_name, "response": {"result": result}}
+                )
             except Exception as e:
-                function_responses.append({
-                    "name": func_name,
-                    "response": {"error": str(e)}
-                })
+                function_responses.append(
+                    {"name": func_name, "response": {"error": str(e)}}
+                )
 
         # Send function responses back to model
         try:
@@ -176,16 +171,14 @@ Provide only the direct answer to what was asked.
                 response_parts.append(
                     genai.protos.Part(
                         function_response=genai.protos.FunctionResponse(
-                            name=fr["name"],
-                            response=fr["response"]
+                            name=fr["name"], response=fr["response"]
                         )
                     )
                 )
 
             # Get final response
             final_response = chat.send_message(
-                response_parts,
-                generation_config=self.generation_config
+                response_parts, generation_config=self.generation_config
             )
 
             return final_response.text
