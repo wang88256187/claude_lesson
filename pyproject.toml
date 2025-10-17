@@ -13,3 +13,76 @@ dependencies = [
     "python-multipart==0.0.20",
     "python-dotenv==1.1.1",
 ]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=8.0.0",
+    "pytest-cov>=4.1.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-mock>=3.12.0",
+    "httpx>=0.26.0",  # Required for TestClient
+]
+
+[tool.pytest.ini_options]
+# 测试发现
+testpaths = ["backend/tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+
+# 输出配置
+addopts = [
+    "-v",                    # 详细输出
+    "--strict-markers",      # 严格标记模式
+    "--tb=short",           # 简短的traceback
+    "--cov=backend",        # 代码覆盖率
+    "--cov-report=html",    # HTML覆盖率报告
+    "--cov-report=term-missing",  # 终端显示缺失的行
+    "-p no:warnings",       # 禁用警告显示
+]
+
+# 标记定义
+markers = [
+    "unit: 单元测试(不需要外部依赖)",
+    "integration: 集成测试(需要外部依赖)",
+    "api: API端点测试",
+    "slow: 慢速测试",
+]
+
+# 日志配置
+log_cli = false
+log_cli_level = "INFO"
+log_cli_format = "%(asctime)s [%(levelname)8s] %(message)s"
+log_cli_date_format = "%Y-%m-%d %H:%M:%S"
+
+# 异步测试配置
+asyncio_mode = "auto"
+
+# 覆盖率配置
+[tool.coverage.run]
+source = ["backend"]
+omit = [
+    "*/tests/*",
+    "*/test_*.py",
+    "*/__pycache__/*",
+    "*/venv/*",
+    "*/virtualenv/*",
+]
+
+[tool.coverage.report]
+precision = 2
+show_missing = true
+skip_covered = false
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
