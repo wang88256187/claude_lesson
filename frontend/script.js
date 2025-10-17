@@ -22,6 +22,11 @@ document.addEventListener('DOMContentLoaded', () => {
     setupEventListeners();
     createNewSession();
     loadCourseStats();
+
+    // Remove no-transition class after page load to enable smooth theme transitions
+    setTimeout(() => {
+        document.body.classList.remove('no-transition');
+    }, 100);
 });
 
 // Event Listeners
@@ -193,6 +198,28 @@ function toggleTheme() {
     const newTheme = currentTheme === 'light' ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', newTheme);
     localStorage.setItem('theme', newTheme);
+
+    // Update aria-label for screen readers
+    const themeLabel = newTheme === 'light' ? '切换到暗色主题' : '切换到亮色主题';
+    themeToggle.setAttribute('aria-label', themeLabel);
+
+    // Announce theme change to screen readers
+    announceThemeChange(newTheme);
+}
+
+// Announce theme change for screen readers
+function announceThemeChange(theme) {
+    const announcement = document.createElement('div');
+    announcement.setAttribute('role', 'status');
+    announcement.setAttribute('aria-live', 'polite');
+    announcement.className = 'visually-hidden';
+    announcement.textContent = theme === 'light' ? '已切换到亮色主题' : '已切换到暗色主题';
+    document.body.appendChild(announcement);
+
+    // Remove after announcement
+    setTimeout(() => {
+        document.body.removeChild(announcement);
+    }, 1000);
 }
 
 // Session Management

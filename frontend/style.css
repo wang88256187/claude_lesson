@@ -52,6 +52,34 @@ body {
     overflow: hidden;
     margin: 0;
     padding: 0;
+    /* Smooth theme transitions */
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Smooth transitions for all themed elements */
+* {
+    transition: background-color 0.3s ease,
+                color 0.3s ease,
+                border-color 0.3s ease,
+                box-shadow 0.3s ease;
+}
+
+/* Prevent transition on page load */
+body.no-transition * {
+    transition: none !important;
+}
+
+/* Screen reader only content */
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
 }
 
 /* Container - Full Screen */
@@ -880,9 +908,21 @@ details[open] .suggested-header::before {
     box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
-/* Theme icon visibility */
+.theme-toggle:active {
+    transform: scale(0.95);
+}
+
+/* Icon animations */
+.theme-toggle svg {
+    transition: transform 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55),
+                opacity 0.3s ease;
+    transform-origin: center;
+}
+
+/* Theme icon visibility with animation */
 [data-theme="dark"] .sun-icon {
     display: block;
+    animation: iconRotateIn 0.3s ease-out;
 }
 
 [data-theme="dark"] .moon-icon {
@@ -895,4 +935,16 @@ details[open] .suggested-header::before {
 
 [data-theme="light"] .moon-icon {
     display: block;
+    animation: iconRotateIn 0.3s ease-out;
+}
+
+@keyframes iconRotateIn {
+    from {
+        transform: rotate(-180deg) scale(0.8);
+        opacity: 0;
+    }
+    to {
+        transform: rotate(0deg) scale(1);
+        opacity: 1;
+    }
 }
