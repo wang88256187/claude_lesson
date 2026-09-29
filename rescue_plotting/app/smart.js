@@ -85,15 +85,220 @@
     origin = map.getCenter();
     anchors = { O: { ll: [origin.lat, origin.lng], name: '当前视图中心' } };
     app.features.forEach((f, i) => {
-      anchors['F' + (i + 1)] = { ll: f.type === 'point' ? f.coords[0] : centroid(f.coords), name: featName(f), feature: f };
+      anchors['F' + (i + 1)] = {
+        ll: f.type === 'point' ? f.coords[0] : centroid(f.coords), name: featName(f), feature: f,
+        chains: f.type === 'line' ? [f.coords] : null,
+      };
     });
     refPoints.forEach((p, i) => { anchors['P' + (i + 1)] = { ll: p, name: '参考点' }; });
+    gazInView().forEach((g, i) => {
+      anchors['G' + (i + 1)] = { ll: g.ll, name: g.name, kind: g.kind, chains: g.chains || null, gaz: g };
+    });
     return anchors;
   }
 
+  // ---------------------------------------------------------------- 地名参照（OSM）
+
+  let gazetteer = [];          // {name, kind, ll, chains?}
+  const gazLayer = L.layerGroup();
+  const PLACE_KIND = { city: '城市', town: '镇', village: '村', hamlet: '自然村', suburb: '城区', neighbourhood: '社区', locality: '地名', isolated_dwelling: '居民点' };
+  const ROAD_KIND = { motorway: '高速', trunk: '国道/干线', primary: '省道/主干道', secondary: '县道/次干道', tertiary: '乡道', unclassified: '村道', residential: '街巷', track: '机耕道' };
+  const AMENITY_KIND = { school: '学校', kindergarten: '幼儿园', hospital: '医院', clinic: '卫生院', townhall: '政府', police: '派出所', fire_station: '消防站' };
+
+  function roadKind(t) {
+    const ref = t.ref || '';
+    if (/^G\d/.test(ref)) return '国道';
+    if (/^S\d/.test(ref)) return '省道';
+    if (/^X\d/.test(ref)) return '县道';
+    if (/^Y\d/.test(ref)) return '乡道';
+    return ROAD_KIND[t.highway] || '道路';
+  }
+
+  // 把同名路段按公共端点拼接成连续折线
+  function joinChains(segs) {
+    const key = ll => ll[0].toFixed(6) + ',' + ll[1].toFixed(6);
+    const chains = segs.map(s => s.slice());
+    let merged = true;
+    while (merged) {
+      merged = false;
+      outer: for (let i = 0; i < chains.length; i++) {
+        for (let j = i + 1; j < chains.length; j++) {
+          const a = chains[i], b = chains[j];
+          const a0 = key(a[0]), a1 = key(a[a.length - 1]), b0 = key(b[0]), b1 = key(b[b.length - 1]);
+          let c = null;
+          if (a1 === b0) c = a.concat(b.slice(1));
+          else if (a1 === b1) c = a.concat(b.slice(0, -1).reverse());
+          else if (a0 === b1) c = b.concat(a.slice(1));
+          else if (a0 === b0) c = b.slice().reverse().concat(a.slice(1));
+          if (c) { chains[i] = c; chains.splice(j, 1); merged = true; break outer; }
+        }
+      }
+    }
+    return chains;
+  }
+
+  function chainLength(c) {
+    let d = 0;
+    for (let i = 1; i < c.length; i++) d += map.distance(c[i - 1], c[i]);
+    return d;
+  }
+
+  function processOverpass(data) {
+    const pts = [], lines = new Map();
+    (data.elements || []).forEach(e => {
+      const t = e.tags || {};
+      const name = t['name:zh'] || t.name;
+      if (t.highway || t.waterway) {
+        if (!e.geometry) return;
+        const label = t.highway ? (name && t.ref ? `${name}(${t.ref})` : name || t.ref) : name;
+        if (!label) return;
+        const kind = t.highway ? roadKind(t) : (t.waterway === 'river' ? '河流' : '沟/溪');
+        const k = (t.highway ? 'R:' : 'W:') + (t.ref || name);
+        if (!lines.has(k)) lines.set(k, { name: label, kind, segs: [] });
+        lines.get(k).segs.push(e.geometry.map(g => [g.lat, g.lon]));
+        return;
+      }
+      if (!name) return;
+      let ll = e.lat != null ? [e.lat, e.lon] : e.center ? [e.center.lat, e.center.lon]
+        : e.geometry ? centroid(e.geometry.map(g => [g.lat, g.lon])) : null;
+      if (!ll) return;
+      const kind = t.place ? PLACE_KIND[t.place] || '地名' : t.amenity ? AMENITY_KIND[t.amenity] || '设施'
+        : t.natural === 'peak' ? '山峰' : t.natural === 'valley' ? '沟谷' : t.bridge ? '桥' : '地物';
+      pts.push({ name, kind, ll });
+    });
+    const out = pts.filter((p, i) => pts.findIndex(q => q.name === p.name && q.kind === p.kind) === i);
+    lines.forEach(v => {
+      const chains = joinChains(v.segs).sort((a, b) => chainLength(b) - chainLength(a));
+      // 代表位置：离当前视图中心最近的节点（长河流、长道路的中点可能远在视野外）
+      const c = map.getCenter();
+      const ll = chains.flat().reduce((b, p) => (map.distance(p, c) < map.distance(b, c) ? p : b));
+      out.push({ name: v.name.replace(/;/g, '/'), kind: v.kind, chains, ll });
+    });
+    return out;
+  }
+
+  async function loadGazetteer() {
+    const b = map.getBounds();
+    const km = map.distance(b.getSouthWest(), b.getNorthEast()) / 1000;
+    if (km > 40) return app.hint('视野过大，请放大到 40 公里范围内再载入地名', 3000);
+    const bb = [b.getSouth(), b.getWest(), b.getNorth(), b.getEast()].map(v => v.toFixed(5)).join(',');
+    const query = `[out:json][timeout:60];(
+node["place"]["name"](${bb});
+way["highway"~"^(motorway|trunk|primary|secondary|tertiary|unclassified|residential|track)$"]["name"](${bb});
+way["highway"~"^(motorway|trunk|primary|secondary|tertiary)$"]["ref"](${bb});
+way["waterway"~"^(river|stream)$"]["name"](${bb});
+nwr["amenity"~"^(school|kindergarten|hospital|clinic|townhall|police|fire_station)$"]["name"](${bb});
+nwr["natural"~"^(peak|valley)$"]["name"](${bb});
+way["bridge"="yes"]["name"](${bb});
+);out geom qt;`;
+    const btn = $('sm-gaz');
+    btn.disabled = true; btn.textContent = '载入中…';
+    try {
+      let data;
+      if (location.protocol.startsWith('http')) {
+        const r = await fetch('/api/osm/overpass', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query }) });
+        data = await r.json();
+        if (!r.ok) throw new Error(data.error || r.status);
+      } else {
+        const r = await fetch('https://overpass-api.de/api/interpreter', { method: 'POST', body: new URLSearchParams({ data: query }) });
+        data = await r.json();
+      }
+      const got = processOverpass(data);
+      // 合并：同名同类的以新数据为准
+      const keyOf = g => g.kind + '|' + g.name;
+      const m = new Map(gazetteer.map(g => [keyOf(g), g]));
+      got.forEach(g => m.set(keyOf(g), g));
+      gazetteer = [...m.values()];
+      saveGaz(); renderGaz();
+      $('sm-gaz-show').checked = true; map.addLayer(gazLayer);
+      app.hint(`已载入 ${got.length} 个地名（村镇、道路、河流、设施）`, 3000);
+    } catch (e) {
+      app.hint('地名载入失败：' + e.message, 4000);
+    } finally {
+      btn.disabled = false; btn.textContent = '载入地名';
+    }
+  }
+
+  function gazInView() {
+    // 取视野（外扩一半）内的地名；点最多 60 个、线最多 25 条，离视图中心近的优先
+    const b = map.getBounds().pad(0.5), c = map.getCenter();
+    const inb = g => g.chains ? g.chains.some(ch => ch.some(ll => b.contains(ll))) : b.contains(g.ll);
+    const d = g => map.distance(c, g.ll);
+    const vis = gazetteer.filter(inb).sort((a, x) => d(a) - d(x));
+    return vis.filter(g => !g.chains).slice(0, 60).concat(vis.filter(g => g.chains).slice(0, 25));
+  }
+
+  function renderGaz() {
+    gazLayer.clearLayers();
+    const n = $('sm-gaz-n');
+    if (n) n.textContent = gazetteer.length ? `${gazetteer.length} 个` : '';
+    gazetteer.forEach(g => {
+      if (g.chains) {
+        g.chains.forEach(ch => L.polyline(ch, { color: g.kind.includes('河') || g.kind.includes('沟') ? '#1e88e5' : '#f9a825', weight: 2, opacity: 0.5, interactive: false }).addTo(gazLayer));
+      }
+      L.marker(g.ll, {
+        interactive: false, keyboard: false,
+        icon: L.divIcon({ className: 'gaz-label', iconSize: [0, 0], html: `<span>${escapeXml(g.name)}</span>` }),
+      }).addTo(gazLayer);
+    });
+  }
+
+  function saveGaz() { try { localStorage.setItem('rescue-plot-gaz', JSON.stringify(gazetteer)); } catch (e) { /* 忽略 */ } }
+  try { gazetteer = JSON.parse(localStorage.getItem('rescue-plot-gaz') || '[]'); } catch (e) { gazetteer = []; }
+  app.onSave(() => (gazetteer.length ? { gazetteer } : {}));
+  app.onLoad(gj => { gazetteer = Array.isArray(gj.gazetteer) ? gj.gazetteer : []; saveGaz(); renderGaz(); });
+
   function anchorTable() {
     const geo = { point: '点', line: '线', polygon: '面' };
-    return Object.entries(anchors).map(([k, a]) => {
+    const rows = { F: [], G: [], P: [] };
+    Object.entries(anchors).forEach(([k, a]) => {
+      if (k === 'O') return;
+      if (a.gaz) {
+        const g = a.gaz;
+        let row = `${k} | ${g.name} | ${g.kind}`;
+        if (g.chains) {
+          const c = g.chains[0];
+          row += ` | 线 | 走向 ${JSON.stringify(toXY(c[0]))}→${JSON.stringify(toXY(c[c.length - 1]))}`;
+          const t = topology(k, g);
+          if (t.passes.length) row += ` | 沿途经过:${t.passes.join('→')}`;
+          if (t.meets.length) row += ` | 相交:${t.meets.join('、')}`;
+        } else row += ` | 位置${JSON.stringify(toXY(g.ll))}`;
+        rows.G.push(row);
+        return;
+      }
+      rows[k[0]].push(featRow(k, a));
+    });
+    return `### 图上要素\n${rows.F.join('\n') || '（无）'}` +
+      (rows.G.length ? `\n### 真实地名（OSM）\n${rows.G.join('\n')}` : '') +
+      (rows.P.length ? `\n### 参考点\n${rows.P.join('\n')}` : '');
+  }
+
+  // 道路/河流的拓扑提示：沿途经过的地名（按走向排序）、与哪些道路相交 —— 帮助模型把多段 along 串成合理路线
+  function topology(k, g) {
+    const xy = g.chains.map(c => c.map(toXY));
+    const nearIdx = p => {
+      let best = { d: Infinity, i: 0, ci: 0 };
+      xy.forEach((c, ci) => c.forEach((q, i) => { const d = Math.hypot(q[0] - p[0], q[1] - p[1]); if (d < best.d) best = { d, i, ci }; }));
+      return best;
+    };
+    const passes = [], meets = [];
+    Object.entries(anchors).forEach(([k2, a2]) => {
+      if (!a2.gaz || k2 === k) return;
+      if (!a2.gaz.chains) {
+        const n = nearIdx(toXY(a2.ll));
+        if (n.d < 400) passes.push({ name: `${a2.name}(${k2})`, ord: n.ci * 1e6 + n.i });
+      } else {
+        const other = a2.gaz.chains.flat().map(toXY);
+        const hit = other.some(p => nearIdx(p).d < 40);
+        if (hit) meets.push(`${a2.name}(${k2})`);
+      }
+    });
+    return { passes: passes.sort((x, y) => x.ord - y.ord).map(x => x.name), meets };
+  }
+
+  function featRow(k, a) {
+    const geo = { point: '点', line: '线', polygon: '面' };
+    {
       const f = a.feature;
       let extra = '';
       if (f && f.type === 'line') extra = ` 起点${JSON.stringify(toXY(f.coords[0]))} 终点${JSON.stringify(toXY(f.coords[f.coords.length - 1]))}`;
@@ -107,7 +312,7 @@
       const nm = s.glyph_path ? (f.props.label || s.name) : s.name;
       return `${k} | 名称:${nm} | 注记:${f.props.note || '无'} | ${geo[f.type]} ${f.sym} | 位置${JSON.stringify(toXY(a.ll))}${extra}` +
         (f.props.count ? ` | 人数:${f.props.count}` : '');
-    }).join('\n');
+    }
   }
 
   function catalog() {
@@ -126,11 +331,12 @@
 以米为单位的平面坐标：x 向东为正，y 向北为正，原点 O 为当前视图中心。
 
 ## 位置写法（<位置>）
-- {"ref":"F3"}：就在参照物 F3 处（面、线取其中心）
+- {"ref":"F3"} / {"ref":"G2"}：就在参照物处（F 为图上要素，G 为真实地名，P 为参考点；面、线取其中心）
 - {"ref":"F3","dir":"西","dist":200}：F3 的西方 200 米。dir 取 北/东北/东/东南/南/西南/西/西北，或方位角数字（正北为 0，顺时针）；“北偏东30度”写 30，“南偏西20度”写 200，只说“北偏东”未给度数按 30
 - {"ref":"F12.start"} / {"ref":"F12.end"}：线要素 F12 的起点 / 终点
 - {"xy":[x,y]}：直接给平面坐标
-- 线的 path 中可写 {"along":"F12"}，表示沿 F12 这条线走（展开为其全部节点）
+- {"ref":"G5.start"} / {"ref":"G5.end"} 同样适用于道路、河流
+- 线的 path 中可写 {"along":"G5"}（或图上线要素 F12），表示沿该道路/河流/线路行进：程序会自动截取 along 前后两个位置之间的那一段，因此 along 前后都应给出位置（出发地、目的地）
 
 ## 操作
 {"actions":[
@@ -146,7 +352,7 @@
 
 ## 规则
 1. symbol 必须从下方“符号目录”中原样选取，geometry 必须与目录中的[点/线/面]一致。
-2. 参照物优先按名称匹配下方“参照物”列表（如“堆积区”“前指”“县道”）。找不到参照物或方位距离不明时，不要猜，写入 questions。
+2. 参照物按名称匹配下方“参照物”列表：图上要素（如“堆积区”“前指”）和真实地名（村镇、道路编号如 G345、河流、学校医院）都可以用。“沿某路/某河”用 along。找不到参照物或方位距离不明时，不要猜，写入 questions。
 3. 没说距离时：“附近/旁边”按 100 米，“一侧”按 200 米。
 4. 行动路线从出发位置画到目标位置；“向X搜救/推进”用 XF-6.3.18 进攻方向（heading 为推进方向）或 XF-6.3.17 预计行动路线。
 5. 被困人员用 XF-6.3.22，失联用 X-A01，并填 count。
@@ -154,13 +360,25 @@
 7. 泥石流、滑坡等灾情优先用 GB- 开头的预设符号（如 GB-A10400-泥石流）。
 8. “派/调/转移”图上已有的力量或装备到某处，用 move 移动该要素，不要新增，也不要只改注记。
 9. note 只写注记内容本身（番号、单位、状态、人数），不要带上符号名称；label 只用于 GB- 开头的点符号。
+10. 部队“到达/进至”某处：move 该部队符号，不改其注记。“开设/设立”指挥所、医疗点、安置点等：新增对应符号（图上已有同类且指令是转移时才 move）。
+11. 机动、撤离、转运等路线要沿真实道路：按参照物中道路的“沿途经过”“相交”信息，从出发地起，用一个或多个 {"along":"Gx"} 依次串联到目的地，不要两点直连穿越山体或城区。
+
+## 常用叫法 → 符号
+- 现场指挥部/基本指挥所 → GB-D10100-地质灾害（国标）或 XF-6.1.12；前进指挥所/前指 → XF-6.1.13
+- 伤员救治点/临时医疗点/医疗点 → GB-D10200-临时医疗；医院 → GB-D50100
+- 安置点 → GB-D10200-临时安置；避难场所 → GB-D60100；物资发放点 → GB-D10200-物资发放
+- 监测点/观察哨/预警点 → X-D03；侦察组 → XF-6.1.26；无人机 → XF-6.2.36
+- 被困人员 → XF-6.3.22；失联 → X-A01；伤亡 → X-A02
+- 救援车辆机动路线 → GB-E30100；群众撤离路线 → GB-E30200；人员行动/搜救路线 → XF-6.3.17；伤员转运路线 → XF-6.3.17（note 写明）
+- 警戒区 → GB-F10100；事故控制区 → GB-F10200；蔓延区 → GB-F10300；搜救责任区 → X-F03
+- 道路中断 → GB-A21300-公路设施（点）或 GB-E20500（线）；房屋倒塌/掩埋 → GB-A21300-建筑垮塌
 
 ## 符号目录
 ${catalog()}`;
   }
 
   function userPrompt(text) {
-    return `## 参照物（当前图上）\n${anchorTable()}\n\n## 指令\n${text}`;
+    return `## 参照物\n${anchorTable()}\n\n## 指令\n${text}`;
   }
 
   // ---------------------------------------------------------------- 解析与坐标计算
@@ -185,8 +403,9 @@ ${catalog()}`;
     if (!a) throw new Error(`找不到参照物 ${ref || '（未指定）'}`);
     let ll = a.ll;
     if (which) {
-      if (!a.feature || a.feature.type !== 'line') throw new Error(`${ref} 不是线，不能取${which === 'start' ? '起点' : '终点'}`);
-      ll = which === 'start' ? a.feature.coords[0] : a.feature.coords[a.feature.coords.length - 1];
+      if (!a.chains) throw new Error(`${ref} 不是线，不能取${which === 'start' ? '起点' : '终点'}`);
+      const c = a.chains[0];
+      ll = which === 'start' ? c[0] : c[c.length - 1];
     }
     const dist = Number(pos.dist || 0);
     if (dist) {
@@ -200,16 +419,33 @@ ${catalog()}`;
     return ll;
   }
 
-  function resolvePath(list) {
-    const out = [];
-    (list || []).forEach(p => {
-      if (p && p.along) {
-        const a = anchors[String(p.along)];
-        if (!a || !a.feature || a.feature.type !== 'line') throw new Error(`along 引用的 ${p.along} 不是线`);
-        out.push(...a.feature.coords);
-      } else out.push(resolvePos(p));
+  // 沿线：在该线（可能由多段组成）上截取离前一点、后一点最近的两个节点之间的一段
+  function alongSegment(a, prev, next) {
+    const dd = (p, q) => { const [x1, y1] = toXY(p), [x2, y2] = toXY(q); return Math.hypot(x1 - x2, y1 - y2); };
+    const nearest = (c, p) => c.reduce((best, ll, i) => (dd(ll, p) < dd(c[best], p) ? i : best), 0);
+    let best = null;
+    a.chains.forEach(c => {
+      const i = prev ? nearest(c, prev) : 0;
+      const j = next ? nearest(c, next) : c.length - 1;
+      const cost = (prev ? dd(c[i], prev) : 0) + (next ? dd(c[j], next) : 0);
+      if (!best || cost < best.cost) best = { c, i, j, cost };
     });
-    return out;
+    const { c, i, j } = best;
+    return i <= j ? c.slice(i, j + 1) : c.slice(j, i + 1).reverse();
+  }
+
+  function resolvePath(list) {
+    const items = (list || []).map(p => (p && p.along ? { along: String(p.along) } : { ll: resolvePos(p) }));
+    const out = [];
+    items.forEach((it, k) => {
+      if (!it.along) { out.push(it.ll); return; }
+      const a = anchors[it.along];
+      if (!a || !a.chains) throw new Error(`along 引用的 ${it.along} 不是线`);
+      const next = items.slice(k + 1).find(x => x.ll);
+      const seg = alongSegment(a, out[out.length - 1], next && next.ll);
+      out.push(...seg);
+    });
+    return out.filter((ll, i) => i === 0 || map.distance(ll, out[i - 1]) > 1);
   }
 
   function circle(centerLL, radius, n = 16) {
@@ -403,9 +639,9 @@ ${catalog()}`;
   }
 
   const EXAMPLES = [
-    '在前指东北方向300米设侦察组，派无人机到堆积区上空侦察',
-    '二中队从集结地沿救援车辆行进路线出发，向堆积区东侧搜救，堆积区东侧新发现被困群众4人',
-    '失联人员已找到，删除失联标记；划定以泥石流堆积区为中心、半径600米的事故控制区域',
+    '武警某支队从集结地域出发，沿G345向东机动到城关镇，在三眼村西侧300米开设前进指挥所',
+    '在舟曲县人民医院设伤员救治点，标一条从泥石流堆积区沿S576到县人民医院的伤员转运路线',
+    '罗家峪群众向西撤离到第二小学安置点；二中队转移到罗家峪，在罗家峪东侧100米发现3人被困',
   ];
 
   function mount() {
@@ -420,6 +656,11 @@ ${catalog()}`;
         <button id="sm-ref-clear" title="清除参考点">清参考点</button>
         <button id="sm-cfg-btn" title="模型连接设置">设置</button>
       </div>
+      <div class="sm-bar">
+        <button id="sm-gaz" title="从 OSM 载入当前视野内的村镇、道路、河流、学校医院等真实地名，指令中可直接引用">载入地名</button>
+        <label class="chk" style="margin:0"><input type="checkbox" id="sm-gaz-show"> 显示地名参照</label>
+        <span class="muted" id="sm-gaz-n"></span>
+      </div>
       <div class="sm-examples">${EXAMPLES.map(e => `<button class="sm-ex">${escapeXml(e)}</button>`).join('')}</div>
       <div id="sm-settings" hidden></div>
       <div id="sm-result"></div>`;
@@ -431,6 +672,8 @@ ${catalog()}`;
     $('sm-ref').onclick = () => { placingRef = !placingRef; $('sm-ref').classList.toggle('on', placingRef); if (placingRef) app.hint('单击地图放置参考点', 2000); };
     $('sm-ref-clear').onclick = () => { refPoints = []; renderRefs(); };
     $('sm-cfg-btn').onclick = () => { $('sm-settings').hidden = !$('sm-settings').hidden; };
+    $('sm-gaz').onclick = loadGazetteer;
+    $('sm-gaz-show').onchange = e => { if (e.target.checked) map.addLayer(gazLayer); else map.removeLayer(gazLayer); };
     box.addEventListener('click', e => {
       if (e.target.classList.contains('sm-ex')) { $('sm-input').value = e.target.textContent; $('sm-input').focus(); }
       if (e.target.id === 'sm-apply') apply();
@@ -447,6 +690,7 @@ ${catalog()}`;
   }
 
   mount();
+  renderGaz();
   detectProxy().then(info => { proxyInfo = info; if (info && info.enabled) cfg.mode = 'proxy'; renderSettings(); });
 
   // 供测试

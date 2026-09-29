@@ -100,19 +100,32 @@
   })();
   L.control.scale({ imperial: false, position: 'bottomleft' }).addTo(map);
 
-  let baseLayer = null;
+  // 底图：页面由 server.py 提供时经本地瓦片缓存（/tiles/…，可离线复用），否则直连公网瓦片
+  const VIA_SERVER = location.protocol.startsWith('http');
+  const ESRI = 'https://server.arcgisonline.com/ArcGIS/rest/services';
+  const TILES = {
+    osm: { url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', max: 19, attr: '&copy; OpenStreetMap contributors' },
+    img: { url: `${ESRI}/World_Imagery/MapServer/tile/{z}/{y}/{x}`, max: 19, attr: 'Imagery &copy; Esri' },
+    label: { url: `${ESRI}/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}`, max: 19, attr: '' },
+    topo: { url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', max: 17, attr: '&copy; OpenTopoMap (CC-BY-SA)' },
+  };
+  function tileLayer(key) {
+    const t = TILES[key];
+    const url = VIA_SERVER ? `/tiles/${key}/{z}/{x}/{y}` : t.url;
+    return L.tileLayer(url, { maxZoom: 19, maxNativeZoom: t.max, attribution: t.attr, subdomains: 'abc' });
+  }
+
+  let baseLayers = [];
   function setBasemap(kind, url) {
-    if (baseLayer) map.removeLayer(baseLayer);
-    baseLayer = null;
+    baseLayers.forEach(l => map.removeLayer(l));
+    baseLayers = [];
     $('map').classList.toggle('no-basemap', kind === 'none');
-    if (kind === 'osm') {
-      baseLayer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19, attribution: '&copy; OpenStreetMap contributors',
-      });
-    } else if (kind === 'custom' && url) {
-      baseLayer = L.tileLayer(url, { maxZoom: 20 });
-    }
-    if (baseLayer) baseLayer.addTo(map).bringToBack();
+    if (kind === 'imglabel') baseLayers = [tileLayer('img'), tileLayer('label')];
+    else if (TILES[kind]) baseLayers = [tileLayer(kind)];
+    else if (kind === 'custom' && url) baseLayers = [L.tileLayer(url, { maxZoom: 20 })];
+    baseLayers.forEach(l => l.addTo(map));
+    baseLayers.slice().reverse().forEach(l => l.bringToBack());
+    localSet('basemap', kind);
   }
   $('basemap').addEventListener('change', e => {
     const v = e.target.value;
@@ -122,6 +135,21 @@
       localSet('tile-url', url);
       setBasemap('custom', url);
     } else setBasemap(v);
+  });
+
+  $('geo-q').addEventListener('keydown', async e => {
+    if (e.key !== 'Enter' || !e.target.value.trim()) return;
+    if (!VIA_SERVER) return hint('地名搜索需用 server.py 启动页面', 2500);
+    try {
+      const r = await fetch('/api/geocode?q=' + encodeURIComponent(e.target.value.trim()));
+      const d = await r.json();
+      if (!r.ok) throw new Error(d.error);
+      if (!d.results.length) return hint('没有找到该地名', 2000);
+      const g = d.results[0];
+      if (g.bbox.length === 4) map.fitBounds([[g.bbox[0], g.bbox[2]], [g.bbox[1], g.bbox[3]]], { maxZoom: 15 });
+      else map.setView([g.lat, g.lon], 14);
+      hint(g.name, 3000);
+    } catch (err) { hint('地名搜索失败：' + err.message, 3000); }
   });
 
   $('btn-image').addEventListener('click', () => $('file-image').click());
@@ -536,8 +564,12 @@
 
   // ---------------------------------------------------------------- 文件：保存 / 打开 / 打印 / 演示 / 清空
 
+  const saveHooks = [], loadHooks = [];
+
   function toGeoJSON() {
+    const extra = Object.assign({}, ...saveHooks.map(h => h()));
     return {
+      ...extra,
       type: 'FeatureCollection',
       title: $('title').value,
       generator: '抢险救援标绘 ' + LIB.version,
@@ -573,6 +605,7 @@
   function loadData(gj, fit = true) {
     const { features: fs, skipped } = fromGeoJSON(gj);
     features = fs;
+    loadHooks.forEach(h => h(gj));
     $('title').value = gj.title || $('title').value;
     selectedId = null;
     updateTitleBlock(); renderAll(); renderProps(); commit();
@@ -609,7 +642,6 @@
   window.addEventListener('afterprint', () => map.invalidateSize());
   $('btn-demo').addEventListener('click', () => {
     if (features.length && !confirm('载入演示数据会替换当前标绘，是否继续？（可撤销）')) return;
-    $('basemap').value = 'none'; setBasemap('none');
     loadData(window.DEMO_PLOT);
   });
   $('btn-clear').addEventListener('click', () => {
@@ -620,7 +652,9 @@
   // ---------------------------------------------------------------- 启动
 
   renderTabs(); renderPalette();
-  setBasemap('osm');
+  const bm = localGet('basemap') || 'imglabel';
+  $('basemap').value = bm === 'custom' ? 'none' : bm;
+  setBasemap($('basemap').value);
   const saved = localGet(STORE_KEY);
   if (saved) {
     try { restore(saved); } catch (e) { /* 损坏的缓存直接忽略 */ }
@@ -639,5 +673,6 @@
   window.plotApp = {
     map, LIB, SYM, get features() { return features; },
     loadData, toGeoJSON, addFeature, removeFeature, renderAll, renderProps, commit, select, hint,
+    onSave: fn => saveHooks.push(fn), onLoad: fn => loadHooks.push(fn),
   };
 })();

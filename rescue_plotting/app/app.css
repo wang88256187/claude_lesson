@@ -163,6 +163,10 @@ kbd { border: 1px solid #ccc; border-radius: 3px; padding: 0 4px; font-size: 12p
   display: flex; align-items: center; justify-content: center;
 }
 .ref-pt span { transform: rotate(45deg); }
+.gaz-label span {
+  position: absolute; transform: translate(-50%, -50%); white-space: nowrap; pointer-events: none;
+  font-size: 11px; color: #0d47a1; background: rgba(255, 255, 255, .7); padding: 0 3px; border-radius: 2px;
+}
 
 @media (max-width: 900px) {
   #layout { flex-direction: column; }

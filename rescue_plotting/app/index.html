@@ -11,13 +11,19 @@
 <header id="topbar">
   <input id="title" class="title-input" value="泥石流抢险救援态势图" title="图名">
   <div class="tb-group">
+    <input id="geo-q" type="search" placeholder="搜索地名定位，如 舟曲县" title="经 server.py 使用 OSM 地名搜索" style="width:170px">
+  </div>
+  <div class="tb-group">
     <button id="btn-undo" title="撤销 (Ctrl+Z)">↶ 撤销</button>
     <button id="btn-redo" title="重做 (Ctrl+Y)">↷ 重做</button>
   </div>
   <div class="tb-group">
     <label>底图
       <select id="basemap">
-        <option value="osm">OSM 在线地图</option>
+        <option value="imglabel">卫星影像 + 注记</option>
+        <option value="img">卫星影像</option>
+        <option value="topo">地形图（等高线）</option>
+        <option value="osm">OSM 街道图</option>
         <option value="custom">自定义瓦片地址…</option>
         <option value="none">无底图（网格）</option>
       </select>
