@@ -139,6 +139,31 @@ kbd { border: 1px solid #ccc; border-radius: 3px; padding: 0 4px; font-size: 12p
 .lg-item .ic { width: 44px; height: 22px; display: flex; align-items: center; justify-content: center; }
 .lg-item .ic svg { max-width: 44px; max-height: 22px; }
 
+/* 智能标图 */
+#smart { border-bottom: 1px solid var(--line); padding-bottom: 10px; margin-bottom: 10px; }
+#smart h3 { display: flex; align-items: baseline; gap: 6px; flex-wrap: wrap; }
+.sm-engine { font-size: 11px; font-weight: normal; color: var(--muted); }
+#sm-input { width: 100%; padding: 6px; border: 1px solid var(--line); border-radius: 4px; resize: vertical; }
+.sm-bar { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0; }
+.sm-bar button { font-size: 12px; padding: 3px 8px; }
+.sm-bar button.on { background: #e8f0fb; border-color: var(--sel); }
+.sm-examples { display: flex; flex-direction: column; gap: 3px; margin-bottom: 6px; }
+.sm-ex { text-align: left; font-size: 11px; color: var(--muted); border-style: dashed; padding: 3px 6px; }
+#sm-settings { background: #fafafa; border: 1px solid var(--line); border-radius: 4px; padding: 8px; margin-bottom: 6px; }
+.sm-item { display: flex; gap: 6px; align-items: center; padding: 4px 0; border-bottom: 1px dashed #eee; font-size: 12px; }
+.sm-item.err { color: var(--accent); display: block; }
+.sm-item.err .muted { word-break: break-all; }
+.sm-ic svg { width: 26px; height: 26px; display: block; }
+.sm-ic { flex: none; }
+.sm-q { color: #ef6c00; font-size: 12px; padding: 3px 0; }
+#sm-result pre { white-space: pre-wrap; word-break: break-all; font-size: 11px; max-height: 200px; overflow: auto; }
+.ref-pt div {
+  width: 26px; height: 26px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg);
+  background: #1565c0; color: #fff; font-size: 10px; font-weight: bold;
+  display: flex; align-items: center; justify-content: center;
+}
+.ref-pt span { transform: rotate(45deg); }
+
 @media (max-width: 900px) {
   #layout { flex-direction: column; }
   #palette, #props { width: 100%; max-height: 32vh; border: none; border-bottom: 1px solid var(--line); }

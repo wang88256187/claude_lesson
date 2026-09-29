@@ -630,5 +630,14 @@
   if (features.length) map.fitBounds(L.latLngBounds(features.flatMap(f => f.coords)).pad(0.15));
 
   // 供调试与后续“智能标图”调用
-  window.plotApp = { map, get features() { return features; }, loadData, toGeoJSON, addFeature, renderAll, commit, SYM };
+  function removeFeature(id) {
+    features = features.filter(f => f.id !== id);
+    if (selectedId === id) selectedId = null;
+  }
+
+  // 供调试与“智能标图”（smart.js）调用；批量修改后调用 renderAll() + commit() 形成一步可撤销操作
+  window.plotApp = {
+    map, LIB, SYM, get features() { return features; },
+    loadData, toGeoJSON, addFeature, removeFeature, renderAll, renderProps, commit, select, hint,
+  };
 })();
