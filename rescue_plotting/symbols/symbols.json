@@ -1,0 +1,1000 @@
+{
+  "name": "抢险救援标绘符号库（泥石流场景）",
+  "version": "0.1.0",
+  "basis": "分类框架参考 GB/T 35649-2017《突发事件应急标绘符号规范》；图形、颜色、编码为本项目自定义示意",
+  "not_official": true,
+  "palette": {
+    "event": "#D35400",
+    "hazard": "#8E44AD",
+    "target": "#1F6FB2",
+    "force": "#C0392B",
+    "support": "#1E8449",
+    "debris": "#7B4A1E"
+  },
+  "categories": {
+    "event": "灾害事件",
+    "hazard": "危险源/隐患",
+    "target": "防护目标",
+    "force": "救援力量与行动",
+    "support": "应急保障资源",
+    "debris": "泥石流本体"
+  },
+  "echelons": [
+    "组",
+    "班",
+    "排",
+    "中队",
+    "大队",
+    "支队"
+  ],
+  "symbols": [
+    {
+      "id": "EV-01",
+      "name": "泥石流发生点",
+      "geometry": "point",
+      "category": "event",
+      "color": "#D35400",
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><polygon points='32,5 60,57 4,57' fill='#fff' stroke='#D35400' stroke-width='3.5' stroke-linejoin='round'/><text x='32' y='49' text-anchor='middle' font-size='20' font-weight='bold' fill='#D35400' font-family='Microsoft YaHei,PingFang SC,Noto Sans CJK SC,sans-serif'>泥</text></svg>",
+      "description": "泥石流发生或暴发位置",
+      "attributes": [
+        "label",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "EV-02",
+      "name": "滑坡",
+      "geometry": "point",
+      "category": "event",
+      "color": "#D35400",
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><polygon points='32,5 60,57 4,57' fill='#fff' stroke='#D35400' stroke-width='3.5' stroke-linejoin='round'/><text x='32' y='49' text-anchor='middle' font-size='20' font-weight='bold' fill='#D35400' font-family='Microsoft YaHei,PingFang SC,Noto Sans CJK SC,sans-serif'>滑</text></svg>",
+      "description": "滑坡发生位置",
+      "attributes": [
+        "label",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "EV-03",
+      "name": "崩塌",
+      "geometry": "point",
+      "category": "event",
+      "color": "#D35400",
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><polygon points='32,5 60,57 4,57' fill='#fff' stroke='#D35400' stroke-width='3.5' stroke-linejoin='round'/><text x='32' y='49' text-anchor='middle' font-size='20' font-weight='bold' fill='#D35400' font-family='Microsoft YaHei,PingFang SC,Noto Sans CJK SC,sans-serif'>崩</text></svg>",
+      "description": "崩塌、落石发生位置",
+      "attributes": [
+        "label",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "EV-04",
+      "name": "堰塞体",
+      "geometry": "point",
+      "category": "event",
+      "color": "#D35400",
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><polygon points='32,5 60,57 4,57' fill='#fff' stroke='#D35400' stroke-width='3.5' stroke-linejoin='round'/><text x='32' y='49' text-anchor='middle' font-size='20' font-weight='bold' fill='#D35400' font-family='Microsoft YaHei,PingFang SC,Noto Sans CJK SC,sans-serif'>堰</text></svg>",
+      "description": "泥石流/滑坡堵江形成的堰塞体",
+      "attributes": [
+        "label",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "EV-05",
+      "name": "房屋倒塌/掩埋",
+      "geometry": "point",
+      "category": "event",
+      "color": "#D35400",
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><polygon points='32,5 60,57 4,57' fill='#fff' stroke='#D35400' stroke-width='3.5' stroke-linejoin='round'/><text x='32' y='49' text-anchor='middle' font-size='20' font-weight='bold' fill='#D35400' font-family='Microsoft YaHei,PingFang SC,Noto Sans CJK SC,sans-serif'>塌</text></svg>",
+      "description": "房屋被冲毁、掩埋位置",
+      "attributes": [
+        "label",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "EV-06",
+      "name": "道路中断点",
+      "geometry": "point",
+      "category": "event",
+      "color": "#D35400",
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><polygon points='32,5 60,57 4,57' fill='#fff' stroke='#D35400' stroke-width='3.5' stroke-linejoin='round'/><text x='32' y='49' text-anchor='middle' font-size='20' font-weight='bold' fill='#D35400' font-family='Microsoft YaHei,PingFang SC,Noto Sans CJK SC,sans-serif'>断</text></svg>",
+      "description": "道路被冲毁、掩埋的断点",
+      "attributes": [
+        "label",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "EV-07",
+      "name": "桥梁损毁",
+      "geometry": "point",
+      "category": "event",
+      "color": "#D35400",
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><polygon points='32,5 60,57 4,57' fill='#fff' stroke='#D35400' stroke-width='3.5' stroke-linejoin='round'/><text x='32' y='49' text-anchor='middle' font-size='20' font-weight='bold' fill='#D35400' font-family='Microsoft YaHei,PingFang SC,Noto Sans CJK SC,sans-serif'>桥</text></svg>",
+      "description": "桥梁冲毁或受损",
+      "attributes": [
+        "label",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "EV-08",
+      "name": "被困人员",
+      "geometry": "point",
+      "category": "event",
+      "color": "#D35400",
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><polygon points='32,5 60,57 4,57' fill='#fff' stroke='#D35400' stroke-width='3.5' stroke-linejoin='round'/><text x='32' y='49' text-anchor='middle' font-size='20' font-weight='bold' fill='#D35400' font-family='Microsoft YaHei,PingFang SC,Noto Sans CJK SC,sans-serif'>困</text></svg>",
+      "description": "已确认被困人员位置",
+      "attributes": [
+        "label",
+        "count",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "EV-09",
+      "name": "失联人员（最后位置）",
+      "geometry": "point",
+      "category": "event",
+      "color": "#D35400",
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><polygon points='32,5 60,57 4,57' fill='#fff' stroke='#D35400' stroke-width='3.5' stroke-linejoin='round'/><text x='32' y='49' text-anchor='middle' font-size='20' font-weight='bold' fill='#D35400' font-family='Microsoft YaHei,PingFang SC,Noto Sans CJK SC,sans-serif'>失</text></svg>",
+      "description": "失联人员最后已知位置",
+      "attributes": [
+        "label",
+        "count",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "EV-10",
+      "name": "伤亡人员",
+      "geometry": "point",
+      "category": "event",
+      "color": "#D35400",
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><polygon points='32,5 60,57 4,57' fill='#fff' stroke='#D35400' stroke-width='3.5' stroke-linejoin='round'/><text x='32' y='49' text-anchor='middle' font-size='20' font-weight='bold' fill='#D35400' font-family='Microsoft YaHei,PingFang SC,Noto Sans CJK SC,sans-serif'>伤</text></svg>",
+      "description": "伤员或遇难人员位置",
+      "attributes": [
+        "label",
+        "count",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "EV-11",
+      "name": "通信中断",
+      "geometry": "point",
+      "category": "event",
+      "color": "#D35400",
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><polygon points='32,5 60,57 4,57' fill='#fff' stroke='#D35400' stroke-width='3.5' stroke-linejoin='round'/><text x='32' y='49' text-anchor='middle' font-size='20' font-weight='bold' fill='#D35400' font-family='Microsoft YaHei,PingFang SC,Noto Sans CJK SC,sans-serif'>讯</text></svg>",
+      "description": "公网/专网通信中断区域中心点",
+      "attributes": [
+        "label",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "EV-12",
+      "name": "电力中断",
+      "geometry": "point",
+      "category": "event",
+      "color": "#D35400",
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><polygon points='32,5 60,57 4,57' fill='#fff' stroke='#D35400' stroke-width='3.5' stroke-linejoin='round'/><text x='32' y='49' text-anchor='middle' font-size='20' font-weight='bold' fill='#D35400' font-family='Microsoft YaHei,PingFang SC,Noto Sans CJK SC,sans-serif'>电</text></svg>",
+      "description": "供电中断点",
+      "attributes": [
+        "label",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "HZ-01",
+      "name": "不稳定斜坡",
+      "geometry": "point",
+      "category": "hazard",
+      "color": "#8E44AD",
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><polygon points='32,3 61,32 32,61 3,32' fill='#fff' stroke='#8E44AD' stroke-width='3.5'/><text x='32' y='40' text-anchor='middle' font-size='20' font-weight='bold' fill='#8E44AD' font-family='Microsoft YaHei,PingFang SC,Noto Sans CJK SC,sans-serif'>坡</text></svg>",
+      "description": "存在二次滑塌风险的斜坡",
+      "attributes": [
+        "label",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "HZ-02",
+      "name": "松散物源",
+      "geometry": "point",
+      "category": "hazard",
+      "color": "#8E44AD",
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><polygon points='32,3 61,32 32,61 3,32' fill='#fff' stroke='#8E44AD' stroke-width='3.5'/><text x='32' y='40' text-anchor='middle' font-size='20' font-weight='bold' fill='#8E44AD' font-family='Microsoft YaHei,PingFang SC,Noto Sans CJK SC,sans-serif'>源</text></svg>",
+      "description": "沟道内可能再次启动的松散堆积物",
+      "attributes": [
+        "label",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "HZ-03",
+      "name": "危险建筑",
+      "geometry": "point",
+      "category": "hazard",
+      "color": "#8E44AD",
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><polygon points='32,3 61,32 32,61 3,32' fill='#fff' stroke='#8E44AD' stroke-width='3.5'/><text x='32' y='40' text-anchor='middle' font-size='20' font-weight='bold' fill='#8E44AD' font-family='Microsoft YaHei,PingFang SC,Noto Sans CJK SC,sans-serif'>危</text></svg>",
+      "description": "受损、可能倒塌的建筑物",
+      "attributes": [
+        "label",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "HZ-04",
+      "name": "危化品/油气",
+      "geometry": "point",
+      "category": "hazard",
+      "color": "#8E44AD",
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><polygon points='32,3 61,32 32,61 3,32' fill='#fff' stroke='#8E44AD' stroke-width='3.5'/><text x='32' y='40' text-anchor='middle' font-size='20' font-weight='bold' fill='#8E44AD' font-family='Microsoft YaHei,PingFang SC,Noto Sans CJK SC,sans-serif'>化</text></svg>",
+      "description": "加油站、危化品仓库等",
+      "attributes": [
+        "label",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "HZ-05",
+      "name": "堰塞湖溃决风险点",
+      "geometry": "point",
+      "category": "hazard",
+      "color": "#8E44AD",
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><polygon points='32,3 61,32 32,61 3,32' fill='#fff' stroke='#8E44AD' stroke-width='3.5'/><text x='32' y='40' text-anchor='middle' font-size='20' font-weight='bold' fill='#8E44AD' font-family='Microsoft YaHei,PingFang SC,Noto Sans CJK SC,sans-serif'>溃</text></svg>",
+      "description": "可能溃决的堰塞体或水库",
+      "attributes": [
+        "label",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "TG-01",
+      "name": "居民点",
+      "geometry": "point",
+      "category": "target",
+      "color": "#1F6FB2",
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect x='6' y='6' width='52' height='52' rx='4' fill='#fff' stroke='#1F6FB2' stroke-width='3.5'/><text x='32' y='40' text-anchor='middle' font-size='22' font-weight='bold' fill='#1F6FB2' font-family='Microsoft YaHei,PingFang SC,Noto Sans CJK SC,sans-serif'>居</text></svg>",
+      "description": "村庄、居民集中区",
+      "attributes": [
+        "label",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "TG-02",
+      "name": "学校",
+      "geometry": "point",
+      "category": "target",
+      "color": "#1F6FB2",
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect x='6' y='6' width='52' height='52' rx='4' fill='#fff' stroke='#1F6FB2' stroke-width='3.5'/><text x='32' y='40' text-anchor='middle' font-size='22' font-weight='bold' fill='#1F6FB2' font-family='Microsoft YaHei,PingFang SC,Noto Sans CJK SC,sans-serif'>学</text></svg>",
+      "description": "学校、幼儿园",
+      "attributes": [
+        "label",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "TG-03",
+      "name": "医院/卫生院",
+      "geometry": "point",
+      "category": "target",
+      "color": "#1F6FB2",
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect x='6' y='6' width='52' height='52' rx='4' fill='#fff' stroke='#1F6FB2' stroke-width='3.5'/><text x='32' y='40' text-anchor='middle' font-size='22' font-weight='bold' fill='#1F6FB2' font-family='Microsoft YaHei,PingFang SC,Noto Sans CJK SC,sans-serif'>医</text></svg>",
+      "description": "医疗机构",
+      "attributes": [
+        "label",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "TG-04",
+      "name": "水库/水电站",
+      "geometry": "point",
+      "category": "target",
+      "color": "#1F6FB2",
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect x='6' y='6' width='52' height='52' rx='4' fill='#fff' stroke='#1F6FB2' stroke-width='3.5'/><text x='32' y='40' text-anchor='middle' font-size='22' font-weight='bold' fill='#1F6FB2' font-family='Microsoft YaHei,PingFang SC,Noto Sans CJK SC,sans-serif'>库</text></svg>",
+      "description": "水库、水电站",
+      "attributes": [
+        "label",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "TG-05",
+      "name": "重要设施",
+      "geometry": "point",
+      "category": "target",
+      "color": "#1F6FB2",
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect x='6' y='6' width='52' height='52' rx='4' fill='#fff' stroke='#1F6FB2' stroke-width='3.5'/><text x='32' y='40' text-anchor='middle' font-size='22' font-weight='bold' fill='#1F6FB2' font-family='Microsoft YaHei,PingFang SC,Noto Sans CJK SC,sans-serif'>设</text></svg>",
+      "description": "变电站、通信基站、水厂等",
+      "attributes": [
+        "label",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "FC-01",
+      "name": "现场指挥部",
+      "geometry": "point",
+      "category": "force",
+      "color": "#C0392B",
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><line x1='12' y1='6' x2='12' y2='60' stroke='#C0392B' stroke-width='4'/><rect x='12' y='6' width='46' height='30' fill='#fff' stroke='#C0392B' stroke-width='3.5'/><text x='32' y='28' text-anchor='middle' font-size='18' font-weight='bold' fill='#C0392B' font-family='Microsoft YaHei,PingFang SC,Noto Sans CJK SC,sans-serif'>指</text></svg>",
+      "description": "现场（基本）指挥所",
+      "attributes": [
+        "label",
+        "echelon",
+        "headcount",
+        "equipment",
+        "task",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "FC-02",
+      "name": "前进指挥所",
+      "geometry": "point",
+      "category": "force",
+      "color": "#C0392B",
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><line x1='12' y1='6' x2='12' y2='60' stroke='#C0392B' stroke-width='4'/><rect x='12' y='6' width='46' height='30' fill='#fff' stroke='#C0392B' stroke-width='3.5'/><text x='32' y='28' text-anchor='middle' font-size='18' font-weight='bold' fill='#C0392B' font-family='Microsoft YaHei,PingFang SC,Noto Sans CJK SC,sans-serif'>前指</text></svg>",
+      "description": "靠前设置的前进指挥所",
+      "attributes": [
+        "label",
+        "echelon",
+        "headcount",
+        "equipment",
+        "task",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "FC-03",
+      "name": "救援分队",
+      "geometry": "point",
+      "category": "force",
+      "color": "#C0392B",
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect x='3' y='14' width='58' height='36' fill='#fff' stroke='#C0392B' stroke-width='3.5'/><text x='32' y='39' text-anchor='middle' font-size='20' font-weight='bold' fill='#C0392B' font-family='Microsoft YaHei,PingFang SC,Noto Sans CJK SC,sans-serif'>救</text></svg>",
+      "description": "救援分队（通过 echelon 标注规模）",
+      "attributes": [
+        "label",
+        "echelon",
+        "headcount",
+        "equipment",
+        "task",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "FC-04",
+      "name": "搜救组",
+      "geometry": "point",
+      "category": "force",
+      "color": "#C0392B",
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect x='3' y='14' width='58' height='36' fill='#fff' stroke='#C0392B' stroke-width='3.5'/><text x='32' y='39' text-anchor='middle' font-size='20' font-weight='bold' fill='#C0392B' font-family='Microsoft YaHei,PingFang SC,Noto Sans CJK SC,sans-serif'>搜</text></svg>",
+      "description": "搜索、营救小组",
+      "attributes": [
+        "label",
+        "echelon",
+        "headcount",
+        "equipment",
+        "task",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "FC-05",
+      "name": "警戒/封控组",
+      "geometry": "point",
+      "category": "force",
+      "color": "#C0392B",
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect x='3' y='14' width='58' height='36' fill='#fff' stroke='#C0392B' stroke-width='3.5'/><text x='32' y='39' text-anchor='middle' font-size='20' font-weight='bold' fill='#C0392B' font-family='Microsoft YaHei,PingFang SC,Noto Sans CJK SC,sans-serif'>警</text></svg>",
+      "description": "负责警戒、交通管制",
+      "attributes": [
+        "label",
+        "echelon",
+        "headcount",
+        "equipment",
+        "task",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "FC-06",
+      "name": "工程抢修组",
+      "geometry": "point",
+      "category": "force",
+      "color": "#C0392B",
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect x='3' y='14' width='58' height='36' fill='#fff' stroke='#C0392B' stroke-width='3.5'/><text x='32' y='39' text-anchor='middle' font-size='20' font-weight='bold' fill='#C0392B' font-family='Microsoft YaHei,PingFang SC,Noto Sans CJK SC,sans-serif'>工</text></svg>",
+      "description": "道路抢通、清障（含工程机械）",
+      "attributes": [
+        "label",
+        "echelon",
+        "headcount",
+        "equipment",
+        "task",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "FC-07",
+      "name": "医疗救护组",
+      "geometry": "point",
+      "category": "force",
+      "color": "#C0392B",
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect x='3' y='14' width='58' height='36' fill='#fff' stroke='#C0392B' stroke-width='3.5'/><text x='32' y='39' text-anchor='middle' font-size='20' font-weight='bold' fill='#C0392B' font-family='Microsoft YaHei,PingFang SC,Noto Sans CJK SC,sans-serif'>医</text></svg>",
+      "description": "随队医疗救护力量",
+      "attributes": [
+        "label",
+        "echelon",
+        "headcount",
+        "equipment",
+        "task",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "FC-08",
+      "name": "观察哨/监测预警点",
+      "geometry": "point",
+      "category": "force",
+      "color": "#C0392B",
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='27' fill='#fff' stroke='#C0392B' stroke-width='3.5'/><text x='32' y='40' text-anchor='middle' font-size='22' font-weight='bold' fill='#C0392B' font-family='Microsoft YaHei,PingFang SC,Noto Sans CJK SC,sans-serif'>哨</text></svg>",
+      "description": "监测泥石流沟上游动态，负责预警",
+      "attributes": [
+        "label",
+        "echelon",
+        "headcount",
+        "equipment",
+        "task",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "FC-09",
+      "name": "无人机侦察组",
+      "geometry": "point",
+      "category": "force",
+      "color": "#C0392B",
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect x='3' y='14' width='58' height='36' fill='#fff' stroke='#C0392B' stroke-width='3.5'/><text x='32' y='39' text-anchor='middle' font-size='20' font-weight='bold' fill='#C0392B' font-family='Microsoft YaHei,PingFang SC,Noto Sans CJK SC,sans-serif'>机</text></svg>",
+      "description": "无人机侦察、测绘、喊话",
+      "attributes": [
+        "label",
+        "echelon",
+        "headcount",
+        "equipment",
+        "task",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "FC-10",
+      "name": "友邻/地方救援力量",
+      "geometry": "point",
+      "category": "force",
+      "color": "#C0392B",
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect x='3' y='14' width='58' height='36' fill='#fff' stroke='#C0392B' stroke-width='3.5'/><text x='32' y='39' text-anchor='middle' font-size='20' font-weight='bold' fill='#C0392B' font-family='Microsoft YaHei,PingFang SC,Noto Sans CJK SC,sans-serif'>友</text></svg>",
+      "description": "消防、应急、医疗等协同力量",
+      "attributes": [
+        "label",
+        "echelon",
+        "headcount",
+        "equipment",
+        "task",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "SP-01",
+      "name": "直升机起降点",
+      "geometry": "point",
+      "category": "support",
+      "color": "#1E8449",
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='27' fill='#fff' stroke='#1E8449' stroke-width='3.5'/><text x='32' y='40' text-anchor='middle' font-size='22' font-weight='bold' fill='#1E8449' font-family='Microsoft YaHei,PingFang SC,Noto Sans CJK SC,sans-serif'>H</text></svg>",
+      "description": "临时直升机起降场",
+      "attributes": [
+        "label",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "SP-02",
+      "name": "临时医疗点",
+      "geometry": "point",
+      "category": "support",
+      "color": "#1E8449",
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='27' fill='#fff' stroke='#1E8449' stroke-width='3.5'/><text x='32' y='40' text-anchor='middle' font-size='22' font-weight='bold' fill='#1E8449' font-family='Microsoft YaHei,PingFang SC,Noto Sans CJK SC,sans-serif'>+</text></svg>",
+      "description": "伤员救治、转运点",
+      "attributes": [
+        "label",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "SP-03",
+      "name": "物资储备/发放点",
+      "geometry": "point",
+      "category": "support",
+      "color": "#1E8449",
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='27' fill='#fff' stroke='#1E8449' stroke-width='3.5'/><text x='32' y='40' text-anchor='middle' font-size='22' font-weight='bold' fill='#1E8449' font-family='Microsoft YaHei,PingFang SC,Noto Sans CJK SC,sans-serif'>资</text></svg>",
+      "description": "救援物资集中点",
+      "attributes": [
+        "label",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "SP-04",
+      "name": "临时安置点",
+      "geometry": "point",
+      "category": "support",
+      "color": "#1E8449",
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='27' fill='#fff' stroke='#1E8449' stroke-width='3.5'/><text x='32' y='40' text-anchor='middle' font-size='22' font-weight='bold' fill='#1E8449' font-family='Microsoft YaHei,PingFang SC,Noto Sans CJK SC,sans-serif'>安</text></svg>",
+      "description": "受灾群众临时安置",
+      "attributes": [
+        "label",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "SP-05",
+      "name": "通信中继/应急通信车",
+      "geometry": "point",
+      "category": "support",
+      "color": "#1E8449",
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='27' fill='#fff' stroke='#1E8449' stroke-width='3.5'/><text x='32' y='40' text-anchor='middle' font-size='22' font-weight='bold' fill='#1E8449' font-family='Microsoft YaHei,PingFang SC,Noto Sans CJK SC,sans-serif'>通</text></svg>",
+      "description": "应急通信保障",
+      "attributes": [
+        "label",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "SP-06",
+      "name": "油料/装备补给点",
+      "geometry": "point",
+      "category": "support",
+      "color": "#1E8449",
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='27' fill='#fff' stroke='#1E8449' stroke-width='3.5'/><text x='32' y='40' text-anchor='middle' font-size='22' font-weight='bold' fill='#1E8449' font-family='Microsoft YaHei,PingFang SC,Noto Sans CJK SC,sans-serif'>补</text></svg>",
+      "description": "油料、装备、器材补给",
+      "attributes": [
+        "label",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "SP-07",
+      "name": "工程机械",
+      "geometry": "point",
+      "category": "support",
+      "color": "#1E8449",
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='27' fill='#fff' stroke='#1E8449' stroke-width='3.5'/><text x='32' y='40' text-anchor='middle' font-size='22' font-weight='bold' fill='#1E8449' font-family='Microsoft YaHei,PingFang SC,Noto Sans CJK SC,sans-serif'>挖</text></svg>",
+      "description": "挖掘机、装载机等",
+      "attributes": [
+        "label",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "SP-08",
+      "name": "生命探测设备",
+      "geometry": "point",
+      "category": "support",
+      "color": "#1E8449",
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><circle cx='32' cy='32' r='27' fill='#fff' stroke='#1E8449' stroke-width='3.5'/><text x='32' y='40' text-anchor='middle' font-size='22' font-weight='bold' fill='#1E8449' font-family='Microsoft YaHei,PingFang SC,Noto Sans CJK SC,sans-serif'>探</text></svg>",
+      "description": "生命探测仪、搜救犬等",
+      "attributes": [
+        "label",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "LN-01",
+      "name": "泥石流流向",
+      "geometry": "line",
+      "category": "debris",
+      "color": "#7B4A1E",
+      "style": {
+        "stroke": "#7B4A1E",
+        "width": 6,
+        "dash": null,
+        "arrow_end": true,
+        "double": false
+      },
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><defs><marker id='arr-LN-01' viewBox='0 0 10 10' refX='8' refY='5' markerWidth='4' markerHeight='4' orient='auto'><path d='M0,0 L10,5 L0,10 z' fill='#7B4A1E'/></marker></defs><path d='M4,44 C18,20 40,48 56,18' fill='none' stroke='#7B4A1E' stroke-width='6'  marker-end='url(#arr-LN-01)'/></svg>",
+      "description": "泥石流运动方向",
+      "attributes": [
+        "label",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "LN-02",
+      "name": "泥石流沟道",
+      "geometry": "line",
+      "category": "debris",
+      "color": "#7B4A1E",
+      "style": {
+        "stroke": "#7B4A1E",
+        "width": 4,
+        "dash": "10,6",
+        "arrow_end": false,
+        "double": false
+      },
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><path d='M4,44 C18,20 40,48 56,18' fill='none' stroke='#7B4A1E' stroke-width='4' stroke-dasharray='10,6' /></svg>",
+      "description": "主沟、支沟走向",
+      "attributes": [
+        "label",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "LN-03",
+      "name": "救援行进路线（计划）",
+      "geometry": "line",
+      "category": "force",
+      "color": "#C0392B",
+      "style": {
+        "stroke": "#C0392B",
+        "width": 4,
+        "dash": "8,6",
+        "arrow_end": true,
+        "double": false
+      },
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><defs><marker id='arr-LN-03' viewBox='0 0 10 10' refX='8' refY='5' markerWidth='4' markerHeight='4' orient='auto'><path d='M0,0 L10,5 L0,10 z' fill='#C0392B'/></marker></defs><path d='M4,44 C18,20 40,48 56,18' fill='none' stroke='#C0392B' stroke-width='4' stroke-dasharray='8,6' marker-end='url(#arr-LN-03)'/></svg>",
+      "description": "计划的机动/行进路线",
+      "attributes": [
+        "label",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "LN-04",
+      "name": "救援行进路线（实施）",
+      "geometry": "line",
+      "category": "force",
+      "color": "#C0392B",
+      "style": {
+        "stroke": "#C0392B",
+        "width": 4,
+        "dash": null,
+        "arrow_end": true,
+        "double": false
+      },
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><defs><marker id='arr-LN-04' viewBox='0 0 10 10' refX='8' refY='5' markerWidth='4' markerHeight='4' orient='auto'><path d='M0,0 L10,5 L0,10 z' fill='#C0392B'/></marker></defs><path d='M4,44 C18,20 40,48 56,18' fill='none' stroke='#C0392B' stroke-width='4'  marker-end='url(#arr-LN-04)'/></svg>",
+      "description": "已实施的机动路线",
+      "attributes": [
+        "label",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "LN-05",
+      "name": "群众撤离路线",
+      "geometry": "line",
+      "category": "support",
+      "color": "#1E8449",
+      "style": {
+        "stroke": "#1E8449",
+        "width": 4,
+        "dash": null,
+        "arrow_end": true,
+        "double": false
+      },
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><defs><marker id='arr-LN-05' viewBox='0 0 10 10' refX='8' refY='5' markerWidth='4' markerHeight='4' orient='auto'><path d='M0,0 L10,5 L0,10 z' fill='#1E8449'/></marker></defs><path d='M4,44 C18,20 40,48 56,18' fill='none' stroke='#1E8449' stroke-width='4'  marker-end='url(#arr-LN-05)'/></svg>",
+      "description": "避险撤离方向",
+      "attributes": [
+        "label",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "LN-06",
+      "name": "道路中断段",
+      "geometry": "line",
+      "category": "event",
+      "color": "#D35400",
+      "style": {
+        "stroke": "#D35400",
+        "width": 6,
+        "dash": "2,5",
+        "arrow_end": false,
+        "double": false
+      },
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><path d='M4,44 C18,20 40,48 56,18' fill='none' stroke='#D35400' stroke-width='6' stroke-dasharray='2,5' /></svg>",
+      "description": "被冲毁或掩埋的路段",
+      "attributes": [
+        "label",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "LN-07",
+      "name": "警戒线",
+      "geometry": "line",
+      "category": "force",
+      "color": "#C0392B",
+      "style": {
+        "stroke": "#C0392B",
+        "width": 4,
+        "dash": "12,4,2,4",
+        "arrow_end": false,
+        "double": false
+      },
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><path d='M4,44 C18,20 40,48 56,18' fill='none' stroke='#C0392B' stroke-width='4' stroke-dasharray='12,4,2,4' /></svg>",
+      "description": "警戒/封控线",
+      "attributes": [
+        "label",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "LN-08",
+      "name": "任务分界线",
+      "geometry": "line",
+      "category": "force",
+      "color": "#C0392B",
+      "style": {
+        "stroke": "#C0392B",
+        "width": 3,
+        "dash": "16,6",
+        "arrow_end": false,
+        "double": false
+      },
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><path d='M4,44 C18,20 40,48 56,18' fill='none' stroke='#C0392B' stroke-width='3' stroke-dasharray='16,6' /></svg>",
+      "description": "相邻分队责任区分界",
+      "attributes": [
+        "label",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "LN-09",
+      "name": "预警撤离信号传递线",
+      "geometry": "line",
+      "category": "force",
+      "color": "#C0392B",
+      "style": {
+        "stroke": "#C0392B",
+        "width": 3,
+        "dash": "4,4",
+        "arrow_end": true,
+        "double": false
+      },
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><defs><marker id='arr-LN-09' viewBox='0 0 10 10' refX='8' refY='5' markerWidth='4' markerHeight='4' orient='auto'><path d='M0,0 L10,5 L0,10 z' fill='#C0392B'/></marker></defs><path d='M4,44 C18,20 40,48 56,18' fill='none' stroke='#C0392B' stroke-width='3' stroke-dasharray='4,4' marker-end='url(#arr-LN-09)'/></svg>",
+      "description": "观察哨至指挥部/群众的预警链路",
+      "attributes": [
+        "label",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "AR-01",
+      "name": "泥石流堆积区",
+      "geometry": "polygon",
+      "category": "debris",
+      "color": "#7B4A1E",
+      "style": {
+        "stroke": "#7B4A1E",
+        "width": 3,
+        "dash": null,
+        "fill": "#7B4A1E",
+        "fill_opacity": 0.45,
+        "hatch": false
+      },
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><polygon points='8,14 50,6 58,40 34,58 6,46' fill='#7B4A1E' fill-opacity='0.45' stroke='#7B4A1E' stroke-width='3' /></svg>",
+      "description": "已形成的堆积扇、掩埋区",
+      "attributes": [
+        "label",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "AR-02",
+      "name": "核心危险区",
+      "geometry": "polygon",
+      "category": "force",
+      "color": "#C0392B",
+      "style": {
+        "stroke": "#C0392B",
+        "width": 3,
+        "dash": null,
+        "fill": "#C0392B",
+        "fill_opacity": 0.35,
+        "hatch": true
+      },
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><defs><pattern id='hatch-AR-02' width='8' height='8' patternUnits='userSpaceOnUse' patternTransform='rotate(45)'><line x1='0' y1='0' x2='0' y2='8' stroke='#C0392B' stroke-width='3'/></pattern></defs><polygon points='8,14 50,6 58,40 34,58 6,46' fill='url(#hatch-AR-02)' fill-opacity='0.6' stroke='#C0392B' stroke-width='3' /></svg>",
+      "description": "禁止无关人员进入",
+      "attributes": [
+        "label",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "AR-03",
+      "name": "警戒区",
+      "geometry": "polygon",
+      "category": "event",
+      "color": "#D35400",
+      "style": {
+        "stroke": "#D35400",
+        "width": 3,
+        "dash": "10,5",
+        "fill": "#D35400",
+        "fill_opacity": 0.2,
+        "hatch": false
+      },
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><polygon points='8,14 50,6 58,40 34,58 6,46' fill='#D35400' fill-opacity='0.2' stroke='#D35400' stroke-width='3' stroke-dasharray='10,5'/></svg>",
+      "description": "限制进入，需佩戴防护、有撤离预案",
+      "attributes": [
+        "label",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "AR-04",
+      "name": "潜在影响区",
+      "geometry": "polygon",
+      "category": "hazard",
+      "color": "#8E44AD",
+      "style": {
+        "stroke": "#8E44AD",
+        "width": 3,
+        "dash": "4,4",
+        "fill": "#8E44AD",
+        "fill_opacity": 0.15,
+        "hatch": false
+      },
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><polygon points='8,14 50,6 58,40 34,58 6,46' fill='#8E44AD' fill-opacity='0.15' stroke='#8E44AD' stroke-width='3' stroke-dasharray='4,4'/></svg>",
+      "description": "二次泥石流可能波及范围",
+      "attributes": [
+        "label",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "AR-05",
+      "name": "搜救责任区",
+      "geometry": "polygon",
+      "category": "force",
+      "color": "#C0392B",
+      "style": {
+        "stroke": "#C0392B",
+        "width": 3,
+        "dash": null,
+        "fill": "#C0392B",
+        "fill_opacity": 0.12,
+        "hatch": false
+      },
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><polygon points='8,14 50,6 58,40 34,58 6,46' fill='#C0392B' fill-opacity='0.12' stroke='#C0392B' stroke-width='3' /></svg>",
+      "description": "分配给某分队的搜救区域",
+      "attributes": [
+        "label",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "AR-06",
+      "name": "集结地域",
+      "geometry": "polygon",
+      "category": "force",
+      "color": "#C0392B",
+      "style": {
+        "stroke": "#C0392B",
+        "width": 3,
+        "dash": "8,4",
+        "fill": "#C0392B",
+        "fill_opacity": 0.12,
+        "hatch": false
+      },
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><polygon points='8,14 50,6 58,40 34,58 6,46' fill='#C0392B' fill-opacity='0.12' stroke='#C0392B' stroke-width='3' stroke-dasharray='8,4'/></svg>",
+      "description": "救援力量集结待命区域",
+      "attributes": [
+        "label",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "AR-07",
+      "name": "临时安置区",
+      "geometry": "polygon",
+      "category": "support",
+      "color": "#1E8449",
+      "style": {
+        "stroke": "#1E8449",
+        "width": 3,
+        "dash": null,
+        "fill": "#1E8449",
+        "fill_opacity": 0.2,
+        "hatch": false
+      },
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><polygon points='8,14 50,6 58,40 34,58 6,46' fill='#1E8449' fill-opacity='0.2' stroke='#1E8449' stroke-width='3' /></svg>",
+      "description": "群众安置区域",
+      "attributes": [
+        "label",
+        "time",
+        "remark"
+      ]
+    },
+    {
+      "id": "AR-08",
+      "name": "直升机作业区",
+      "geometry": "polygon",
+      "category": "support",
+      "color": "#1E8449",
+      "style": {
+        "stroke": "#1E8449",
+        "width": 3,
+        "dash": "6,4",
+        "fill": "#1E8449",
+        "fill_opacity": 0.15,
+        "hatch": false
+      },
+      "svg": "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><polygon points='8,14 50,6 58,40 34,58 6,46' fill='#1E8449' fill-opacity='0.15' stroke='#1E8449' stroke-width='3' stroke-dasharray='6,4'/></svg>",
+      "description": "起降及净空保护区",
+      "attributes": [
+        "label",
+        "time",
+        "remark"
+      ]
+    }
+  ]
+}
