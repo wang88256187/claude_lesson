@@ -191,6 +191,11 @@ def build():
         json.dumps(lib, ensure_ascii=False, indent=1), encoding="utf-8"
     )
     (OUT_DIR / "preview.html").write_text(render_preview(lib), encoding="utf-8")
+    # 供标绘界面以 <script> 方式加载（file:// 下也可用）
+    (OUT_DIR.parent / "app" / "symbols.js").write_text(
+        "window.SYMBOL_LIB = " + json.dumps(lib, ensure_ascii=False) + ";\n",
+        encoding="utf-8",
+    )
     counts = {
         "GB/T 35649": len(gb35649.SYMBOLS),
         "场景预设": len(PRESETS),

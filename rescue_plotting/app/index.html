@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>抢险救援标绘</title>
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<header id="topbar">
+  <input id="title" class="title-input" value="泥石流抢险救援态势图" title="图名">
+  <div class="tb-group">
+    <button id="btn-undo" title="撤销 (Ctrl+Z)">↶ 撤销</button>
+    <button id="btn-redo" title="重做 (Ctrl+Y)">↷ 重做</button>
+  </div>
+  <div class="tb-group">
+    <label>底图
+      <select id="basemap">
+        <option value="osm">OSM 在线地图</option>
+        <option value="custom">自定义瓦片地址…</option>
+        <option value="none">无底图（网格）</option>
+      </select>
+    </label>
+    <button id="btn-image" title="加载本地图片（正射影像、扫描地图）作为底图，铺满当前视野">加载图片底图</button>
+    <input id="file-image" type="file" accept="image/*" hidden>
+  </div>
+  <div class="tb-group">
+    <button id="btn-open">打开</button>
+    <input id="file-open" type="file" accept=".geojson,.json" hidden>
+    <button id="btn-save">保存</button>
+    <button id="btn-print" title="打印或另存为 PDF">打印/PDF</button>
+    <button id="btn-demo">演示数据</button>
+    <button id="btn-clear" class="danger">清空</button>
+  </div>
+</header>
+
+<main id="layout">
+  <aside id="palette">
+    <input id="search" type="search" placeholder="搜索符号：泥石流、武警、撤离…">
+    <div id="tabs"></div>
+    <div id="symbol-list"></div>
+  </aside>
+
+  <section id="map-wrap">
+    <div id="map"></div>
+    <div id="hint"></div>
+    <div id="title-block">
+      <div class="tb-title" id="tb-title"></div>
+      <div class="tb-time" id="tb-time"></div>
+    </div>
+    <div id="north"></div>
+    <div id="legend" hidden><div class="lg-head">图例</div><div id="legend-items"></div></div>
+  </section>
+
+  <aside id="props">
+    <div id="props-empty">
+      <h3>使用方法</h3>
+      <ol>
+        <li>左侧选择符号</li>
+        <li><b>点状</b>：在地图上单击放置，可拖动</li>
+        <li><b>线状/面状</b>：依次单击各点，<b>双击</b>或按 <kbd>Enter</kbd> 结束，<kbd>Esc</kbd> 取消</li>
+        <li>单击已标绘的符号，在此处编辑属性；线、面可拖动顶点修改</li>
+        <li><kbd>Delete</kbd> 删除选中，<kbd>Ctrl+Z</kbd> 撤销</li>
+      </ol>
+      <p class="muted">标绘内容自动保存在本浏览器中。正式数据请用“保存”导出文件，并在内网或离线环境使用。</p>
+      <label class="chk"><input type="checkbox" id="show-legend"> 显示图例</label>
+    </div>
+    <div id="props-form" hidden></div>
+  </aside>
+</main>
+
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="symbols.js"></script>
+<script src="styles.js"></script>
+<script src="demo.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
