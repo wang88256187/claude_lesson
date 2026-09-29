@@ -102,8 +102,11 @@
         const r = Math.round(Math.max(...xs.map(([x, y]) => Math.hypot(x - toXY(a.ll)[0], y - toXY(a.ll)[1]))));
         extra = ` 半径约${r}米`;
       }
-      return `${k} | ${a.name} | ${f ? geo[f.type] + ' ' + f.sym : '参考'} | 位置${JSON.stringify(toXY(a.ll))}${extra}` +
-        (f && f.props.count ? ` | 人数${f.props.count}` : '');
+      if (!f) return `${k} | 名称:${a.name} | 参考点 | 位置${JSON.stringify(toXY(a.ll))}`;
+      const s = SYM[f.sym];
+      const nm = s.glyph_path ? (f.props.label || s.name) : s.name;
+      return `${k} | 名称:${nm} | 注记:${f.props.note || '无'} | ${geo[f.type]} ${f.sym} | 位置${JSON.stringify(toXY(a.ll))}${extra}` +
+        (f.props.count ? ` | 人数:${f.props.count}` : '');
     }).join('\n');
   }
 
@@ -124,7 +127,7 @@
 
 ## 位置写法（<位置>）
 - {"ref":"F3"}：就在参照物 F3 处（面、线取其中心）
-- {"ref":"F3","dir":"西","dist":200}：F3 的西方 200 米。dir 取 北/东北/东/东南/南/西南/西/西北，或方位角数字（正北为 0，顺时针）
+- {"ref":"F3","dir":"西","dist":200}：F3 的西方 200 米。dir 取 北/东北/东/东南/南/西南/西/西北，或方位角数字（正北为 0，顺时针）；“北偏东30度”写 30，“南偏西20度”写 200，只说“北偏东”未给度数按 30
 - {"ref":"F12.start"} / {"ref":"F12.end"}：线要素 F12 的起点 / 终点
 - {"xy":[x,y]}：直接给平面坐标
 - 线的 path 中可写 {"along":"F12"}，表示沿 F12 这条线走（展开为其全部节点）
@@ -136,6 +139,7 @@
   {"op":"add","symbol":"符号id","geometry":"polygon","center":<位置>,"radius":半径米,"note":"可选"},
   {"op":"add","symbol":"符号id","geometry":"polygon","ring":[<位置>,<位置>,<位置>,...],"note":"可选"},
   {"op":"update","target":"F5","note":"新注记","count":新人数,"label":"新标识文字"},
+  {"op":"move","target":"F5","at":<位置>},
   {"op":"delete","target":"F5"}
 ],
 "questions":["指令中无法确定、需要指挥员补充的内容"]}
@@ -146,8 +150,10 @@
 3. 没说距离时：“附近/旁边”按 100 米，“一侧”按 200 米。
 4. 行动路线从出发位置画到目标位置；“向X搜救/推进”用 XF-6.3.18 进攻方向（heading 为推进方向）或 XF-6.3.17 预计行动路线。
 5. 被困人员用 XF-6.3.22，失联用 X-A01，并填 count。
-6. 已有要素的人数、状态变化用 update，不要重复新增。
+6. 已有要素的人数、状态变化用 update，不要重复新增；若原注记里写有人数等数值，update 时同时给出改写后的 note。
 7. 泥石流、滑坡等灾情优先用 GB- 开头的预设符号（如 GB-A10400-泥石流）。
+8. “派/调/转移”图上已有的力量或装备到某处，用 move 移动该要素，不要新增，也不要只改注记。
+9. note 只写注记内容本身（番号、单位、状态、人数），不要带上符号名称；label 只用于 GB- 开头的点符号。
 
 ## 符号目录
 ${catalog()}`;
@@ -214,15 +220,27 @@ ${catalog()}`;
     });
   }
 
-  const NAME_OP = { add: '新增', update: '修改', delete: '删除' };
+  const NAME_OP = { add: '新增', update: '修改', delete: '删除', move: '移动' };
 
   function plan(action) {
     const op = action.op || 'add';
+    if (op === 'move') {
+      const a = anchors[String(action.target)];
+      if (!a || !a.feature) throw new Error(`找不到要移动的要素 ${action.target}`);
+      if (a.feature.type !== 'point') throw new Error(`${action.target} 不是点，暂不支持移动线、面`);
+      const ll = resolvePos(action.at || action.position);
+      return { op, target: a.feature, coords: [ll], text: `移动 ${action.target}「${a.name}」到 ${describePos(action.at || action.position)}` };
+    }
     if (op === 'update' || op === 'delete') {
       const a = anchors[String(action.target)];
       if (!a || !a.feature) throw new Error(`找不到要${NAME_OP[op]}的要素 ${action.target}`);
       const props = {};
-      ['note', 'count', 'label', 'time'].forEach(k => { if (action[k] !== undefined && action[k] !== null) props[k] = action[k]; });
+      const canLabel = !!SYM[a.feature.sym].glyph_path;
+      ['note', 'count', 'label', 'time'].forEach(k => {
+        if (action[k] === undefined || action[k] === null || (k === 'label' && !canLabel)) return;
+        props[k] = k === 'count' ? Number(action[k]) : String(action[k]);
+      });
+      if (op === 'update' && !Object.keys(props).length) throw new Error(`对 ${action.target} 的修改没有有效内容`);
       return { op, target: a.feature, props, text: `${NAME_OP[op]} ${action.target}「${a.name}」` + (op === 'update' ? ' → ' + JSON.stringify(props) : '') };
     }
     const s = SYM[action.symbol];
@@ -254,7 +272,8 @@ ${catalog()}`;
     if (p.xy) return `坐标 ${JSON.stringify(p.xy)}`;
     const a = anchors[String(p.ref).split('.')[0]];
     const nm = a ? `${p.ref}「${a.name}」` : p.ref;
-    return p.dist ? `${nm} ${p.dir} ${p.dist} 米` : `位于 ${nm}`;
+    const d = typeof p.dir === 'number' || /^\d/.test(String(p.dir)) ? `方位${p.dir}°` : p.dir;
+    return p.dist ? `${nm} ${d} ${p.dist} 米` : `位于 ${nm}`;
   }
 
   // ---------------------------------------------------------------- 预览与写入
@@ -271,7 +290,11 @@ ${catalog()}`;
       else if (type === 'line') L.polyline(coords, st).addTo(previewLayer);
       else L.polygon(coords, st).addTo(previewLayer);
     });
-    items.filter(it => it.ok && it.p.op !== 'add').forEach(it => {
+    items.filter(it => it.ok && it.p.op === 'move').forEach(it => {
+      L.polyline([it.p.target.coords[0], it.p.coords[0]], { color: '#1565c0', weight: 2, dashArray: '4,4', interactive: false }).addTo(previewLayer);
+      L.circleMarker(it.p.coords[0], { color: '#1565c0', weight: 3, dashArray: '6,5', radius: 14, fillOpacity: 0.1, interactive: false }).addTo(previewLayer);
+    });
+    items.filter(it => it.ok && (it.p.op === 'update' || it.p.op === 'delete')).forEach(it => {
       const f = it.p.target;
       const ll = f.type === 'point' ? f.coords[0] : centroid(f.coords);
       L.circleMarker(ll, { color: it.p.op === 'delete' ? '#c62828' : '#ef6c00', weight: 3, radius: 18, fill: false, interactive: false }).addTo(previewLayer);
@@ -302,6 +325,7 @@ ${catalog()}`;
       const p = it.p;
       if (p.op === 'add') { app.addFeature(p.sym, p.type, p.coords.map(ll => [ll[0], ll[1]]), p.props); n++; }
       else if (p.op === 'update') { Object.assign(p.target.props, p.props); n++; }
+      else if (p.op === 'move') { p.target.coords = [[p.coords[0][0], p.coords[0][1]]]; n++; }
       else if (p.op === 'delete') { app.removeFeature(p.target.id); n++; }
     });
     discard();
@@ -413,6 +437,7 @@ ${catalog()}`;
       if (e.target.id === 'sm-discard') discard();
     });
     box.addEventListener('change', e => {
+      if (!['sm-mode', 'sm-url', 'sm-model', 'sm-key'].includes(e.target.id)) return;
       if (e.target.id === 'sm-mode') cfg.mode = e.target.value;
       if (e.target.id === 'sm-url') cfg.url = e.target.value.trim();
       if (e.target.id === 'sm-model') cfg.model = e.target.value.trim();

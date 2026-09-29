@@ -12,6 +12,9 @@
     # Ollama
     python server.py --llm-url http://127.0.0.1:11434/v1 --model qwen2.5:14b
 
+    # Qwen3 等推理模型：加 --no-think 关闭思考过程，响应从十几秒降到几秒
+    python server.py --llm-url http://127.0.0.1:8000/v1 --model Qwen3-32B --no-think
+
     # OpenRouter 免费模型（仅用于测试，勿发送真实数据）
     set OPENROUTER_API_KEY=...        (Windows)  /  export OPENROUTER_API_KEY=...
     python server.py --llm-url https://openrouter.ai/api/v1 --model qwen/qwen3.8-27b:free
@@ -81,6 +84,7 @@ class Handler(SimpleHTTPRequestHandler):
         }
         if self.llm.get("json_mode"):
             payload["response_format"] = {"type": "json_object"}
+        payload.update(self.llm.get("extra_body") or {})
         headers = {"Content-Type": "application/json"}
         if self.llm.get("key"):
             headers["Authorization"] = "Bearer " + self.llm["key"]
@@ -113,16 +117,24 @@ def main():
     ap.add_argument("--model", default=os.environ.get("LLM_MODEL", ""))
     ap.add_argument("--api-key", default=os.environ.get("LLM_API_KEY") or os.environ.get("OPENROUTER_API_KEY", ""))
     ap.add_argument("--json-mode", action="store_true", help="向接口请求 JSON 输出（需模型服务支持 response_format）")
+    ap.add_argument("--no-think", action="store_true",
+                    help="关闭 Qwen3 等推理模型的思考过程（chat_template_kwargs.enable_thinking=false），响应快得多")
+    ap.add_argument("--extra-body", default=os.environ.get("LLM_EXTRA_BODY", ""),
+                    help='附加到请求体的 JSON，如 \'{"top_p":0.8}\'')
     ap.add_argument("--timeout", type=int, default=180)
     a = ap.parse_args()
 
+    extra = json.loads(a.extra_body) if a.extra_body else {}
+    if a.no_think:
+        extra.setdefault("chat_template_kwargs", {})["enable_thinking"] = False
+
     Handler.llm = {
         "url": a.llm_url, "model": a.model, "key": a.api_key,
-        "json_mode": a.json_mode, "timeout": a.timeout,
+        "json_mode": a.json_mode, "timeout": a.timeout, "extra_body": extra,
     }
     srv = ThreadingHTTPServer((a.host, a.port), partial(Handler, directory=str(APP_DIR)))
     print(f"标绘页面：http://{a.host}:{a.port}")
-    print(f"大模型：{a.llm_url or '未配置（智能标图不可用）'} {a.model}")
+    print(f"大模型：{a.llm_url or '未配置（智能标图不可用）'} {a.model}" + ("（已关闭思考）" if a.no_think else ""))
     try:
         srv.serve_forever()
     except KeyboardInterrupt:
