@@ -53,6 +53,8 @@
 | `smart.js` | 智能标图：参照物（图上要素、真实地名、参考点）、提示词、坐标计算、预览与写入 |
 | `symbols.js` | 符号库，由 `../symbols/build_symbols.py` 生成，请勿手工修改 |
 | `vendor/leaflet/` | Leaflet 1.9.4（BSD-2 许可） |
+| `tools/cropper.html` | 标号采集页：在扫描件上框选本单位标号，导出后用 `../symbols/tools/import_symbols.py` 导入（见 symbols/README.md「导入本单位标号」） |
+| `local_symbols.js` | 本单位标号，由导入工具在本机生成，**不入代码仓库**；存在时页面会多出「本单位」分组 |
 
 ## 智能标图（一句话标图）
 

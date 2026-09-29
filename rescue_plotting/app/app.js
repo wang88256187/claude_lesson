@@ -3,6 +3,13 @@
   'use strict';
 
   const LIB = window.SYMBOL_LIB;
+  // 本单位标号（local_symbols.js，由 symbols/tools/import_symbols.py 在本机生成，不入代码仓库）
+  const LOCAL = window.LOCAL_SYMBOL_LIB;
+  if (LOCAL && Array.isArray(LOCAL.symbols)) {
+    const ids = new Set(LIB.symbols.map(s => s.id));
+    LIB.symbols.push(...LOCAL.symbols.filter(s => !ids.has(s.id)));
+    Object.assign(LIB.categories, LOCAL.categories || {});
+  }
   const { LINE_STYLES, AREA_STYLES, ARROWS, gbPointSvg, escapeXml } = window.PLOT_STYLES;
   const SYM = Object.fromEntries(LIB.symbols.map(s => [s.id, s]));
   const STORE_KEY = 'rescue-plot-v1';
@@ -19,6 +26,11 @@
   ];
 
   const TABS = [
+    ...(LOCAL && LOCAL.symbols && LOCAL.symbols.length ? [{
+      key: 'unit', name: '本单位', groups: () => Object.entries(LIB.categories)
+        .filter(([k]) => k.startsWith('U-'))
+        .map(([k, t]) => ({ title: t, items: LIB.symbols.filter(s => s.category === k) })),
+    }] : []),
     {
       key: 'common', name: '泥石流常用', groups: () => [
         { title: '灾情（GB/T 35649 子类）', items: LIB.symbols.filter(s => s.preset_of) },
@@ -32,7 +44,7 @@
     },
     {
       key: 'xf', name: 'XF/T 3013', groups: () => Object.entries(LIB.categories)
-        .filter(([k]) => !/^[A-F]\d$/.test(k) && !k.startsWith('X'))
+        .filter(([k]) => !/^[A-F]\d$/.test(k) && !k.startsWith('X') && !k.startsWith('U-'))
         .map(([k, t]) => ({ title: t, items: LIB.symbols.filter(s => s.source.startsWith('XF') && s.category === k) })),
     },
     {
@@ -273,8 +285,18 @@
     return Math.atan2(pb.y - pa.y, pb.x - pa.x) * 180 / Math.PI;
   }
 
+  // 未在 styles.js 中专门定义的线、面符号（如本单位导入的），按符号数据里的 style 绘制
+  function styleFromSymbol(s, geom) {
+    const y = (s && s.style) || {};
+    const color = y.stroke || y.color || (s && s.color) || '#FF0000';
+    const arrow = y.arrow_end ? (y.arrow_end === 'open' ? 'open' : 'filled') : undefined;
+    const st = { color, width: Number(y.width) || 2, dash: y.dash || undefined, arrow };
+    if (geom === 'polygon') st.fill = { color: y.fill || color, opacity: y.fill_opacity ?? 0.05 };
+    return st;
+  }
+
   function drawLine(f) {
-    const st = LINE_STYLES[f.sym] || { color: '#FF0000', width: 2 };
+    const st = LINE_STYLES[f.sym] || styleFromSymbol(SYM[f.sym], 'line');
     const op = f.props.opacity ?? 1;
     const ll = f.coords;
     const base = L.polyline(ll, {
@@ -305,7 +327,7 @@
   }
 
   function drawArea(f) {
-    const st = AREA_STYLES[f.sym] || { color: '#FF0000', width: 2, fill: { color: '#FF0000', opacity: 0.05 } };
+    const st = AREA_STYLES[f.sym] || styleFromSymbol(SYM[f.sym], 'polygon');
     const op = f.props.opacity ?? 1;
     const fill = st.fill || {};
     const poly = L.polygon(f.coords, {

@@ -1,0 +1,5 @@
+numpy
+pillow
+potracer
+# 仅 pdf2png 需要：
+pymupdf

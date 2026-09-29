@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>标号采集</title>
+<style>
+:root { --line: #d9d9d6; --sel: #1565c0; --muted: #6b6b6b; }
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { font-family: "Microsoft YaHei", "PingFang SC", sans-serif; font-size: 13px; display: flex; flex-direction: column; background: #f4f4f2; }
+header { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 8px 12px; background: #fff; border-bottom: 1px solid var(--line); }
+header h1 { font-size: 16px; margin: 0 8px 0 0; }
+button, input, select { font: inherit; }
+button { border: 1px solid var(--line); background: #fff; border-radius: 4px; padding: 4px 10px; cursor: pointer; }
+button.primary { background: #c62828; border-color: #c62828; color: #fff; }
+main { flex: 1; display: flex; min-height: 0; }
+#pages { width: 150px; overflow-y: auto; background: #fff; border-right: 1px solid var(--line); padding: 6px; }
+#pages .pg { border: 2px solid transparent; margin-bottom: 6px; cursor: pointer; text-align: center; font-size: 11px; color: var(--muted); }
+#pages .pg.on { border-color: var(--sel); }
+#pages img { width: 100%; display: block; }
+#stage { flex: 1; overflow: auto; position: relative; background: #888; }
+#canvas { display: block; cursor: crosshair; margin: 10px; box-shadow: 0 0 6px rgba(0,0,0,.4); }
+#side { width: 320px; overflow-y: auto; background: #fff; border-left: 1px solid var(--line); padding: 10px; }
+.item { display: grid; grid-template-columns: 56px 1fr; gap: 6px; padding: 6px; border: 1px solid var(--line); border-radius: 6px; margin-bottom: 6px; }
+.item.on { border-color: var(--sel); background: #eef4fc; }
+.item img { width: 56px; height: 56px; object-fit: contain; background: #fff; border: 1px solid #eee; }
+.item .f { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.item input, .item select { width: 100%; padding: 2px 4px; border: 1px solid var(--line); border-radius: 3px; font-size: 12px; }
+.item .full { grid-column: span 2; }
+.item .del { font-size: 11px; padding: 1px 6px; color: #c62828; }
+.muted { color: var(--muted); font-size: 12px; line-height: 1.7; }
+.warn { background: #fff4e5; border: 1px solid #f0c080; padding: 6px 8px; border-radius: 4px; font-size: 12px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>标号采集</h1>
+  <button id="btn-open">打开扫描件/图片</button>
+  <input id="file" type="file" accept="image/*" multiple hidden>
+  <button id="zoom-out">－</button><span id="zoom">100%</span><button id="zoom-in">＋</button><button id="zoom-fit">适应</button>
+  <label>来源 <input id="source" value="本单位常用标号" style="width:180px"></label>
+  <label>下一个编号 <input id="next-code" value="1" style="width:70px"></label>
+  <button id="btn-export" class="primary">导出采集结果</button>
+</header>
+<main>
+  <div id="pages"><div class="muted">未打开文件</div></div>
+  <div id="stage"><canvas id="canvas" width="10" height="10"></canvas></div>
+  <aside id="side">
+    <div class="warn">本页面完全离线运行，图片不会上传。本单位标号属于内部资料，请只在内网计算机上使用，导出文件勿外传。</div>
+    <p class="muted">
+      1. 打开扫描件（PDF 可先用导入脚本 <code>pdf2png</code> 转成图片）<br>
+      2. 在图上<b>拖动鼠标框选</b>一个标号（只框图形，不要框进表格线和说明文字）<br>
+      3. 在右侧填写编号、名称、类型（点/线/面）、分类；线、面符号再选线型和箭头（地图上按此绘制，图片只作预览）<br>
+      4. 全部框完后点「导出采集结果」，再运行：<br>
+      <code>python import_symbols.py 采集结果.json --preview</code><br>
+      选中后按 Delete 可删除；框选后可继续框下一个。
+    </p>
+    <div id="items"></div>
+  </aside>
+</main>
+<script>
+(function () {
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const cv = $('canvas'), ctx = cv.getContext('2d');
+  let pages = [];          // {name, img}
+  let cur = -1, scale = 1;
+  let items = [];          // {page, x, y, w, h, image, code, name, geometry, category, description}
+  let selected = -1, drag = null;
+
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  $('btn-open').onclick = () => $('file').click();
+  $('file').onchange = async e => {
+    for (const f of e.target.files) {
+      const url = await new Promise(r => { const rd = new FileReader(); rd.onload = () => r(rd.result); rd.readAsDataURL(f); });
+      const img = await new Promise(r => { const i = new Image(); i.onload = () => r(i); i.src = url; });
+      pages.push({ name: f.name, img, url });
+    }
+    e.target.value = '';
+    renderPages();
+    if (cur < 0) show(0);
+  };
+
+  function renderPages() {
+    $('pages').innerHTML = pages.map((p, i) =>
+      `<div class="pg${i === cur ? ' on' : ''}" data-i="${i}"><img src="${p.url}">${esc(p.name)}<br>${items.filter(t => t.page === i).length} 个</div>`).join('');
+  }
+  $('pages').onclick = e => { const d = e.target.closest('.pg'); if (d) show(+d.dataset.i); };
+
+  function show(i) {
+    cur = i;
+    fit();
+    renderPages();
+  }
+
+  function fit() {
+    if (cur < 0) return;
+    const img = pages[cur].img;
+    scale = Math.min(1, ($('stage').clientWidth - 30) / img.width);
+    draw();
+  }
+
+  function draw() {
+    if (cur < 0) return;
+    const img = pages[cur].img;
+    cv.width = Math.round(img.width * scale);
+    cv.height = Math.round(img.height * scale);
+    ctx.drawImage(img, 0, 0, cv.width, cv.height);
+    items.forEach((t, k) => {
+      if (t.page !== cur) return;
+      ctx.lineWidth = k === selected ? 3 : 2;
+      ctx.strokeStyle = k === selected ? '#1565c0' : '#00a152';
+      ctx.strokeRect(t.x * scale, t.y * scale, t.w * scale, t.h * scale);
+      ctx.fillStyle = ctx.strokeStyle;
+      ctx.font = '12px sans-serif';
+      ctx.fillText(t.code, t.x * scale, t.y * scale - 3);
+    });
+    if (drag) {
+      ctx.setLineDash([5, 4]); ctx.strokeStyle = '#1565c0'; ctx.lineWidth = 1.5;
+      ctx.strokeRect(drag.x0, drag.y0, drag.x1 - drag.x0, drag.y1 - drag.y0);
+      ctx.setLineDash([]);
+    }
+    $('zoom').textContent = Math.round(scale * 100) + '%';
+  }
+
+  $('zoom-in').onclick = () => { scale = Math.min(4, scale * 1.25); draw(); };
+  $('zoom-out').onclick = () => { scale = Math.max(0.1, scale / 1.25); draw(); };
+  $('zoom-fit').onclick = fit;
+  window.addEventListener('resize', () => { if (cur >= 0 && scale <= 1) fit(); });
+
+  const pos = e => { const r = cv.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+  cv.onmousedown = e => {
+    if (cur < 0) return;
+    const [x, y] = pos(e);
+    const hit = items.findIndex(t => t.page === cur && x >= t.x * scale && x <= (t.x + t.w) * scale && y >= t.y * scale && y <= (t.y + t.h) * scale);
+    if (hit >= 0 && !e.shiftKey) { select(hit); return; }
+    drag = { x0: x, y0: y, x1: x, y1: y };
+  };
+  window.addEventListener('mousemove', e => { if (!drag) return; [drag.x1, drag.y1] = pos(e); draw(); });
+  window.addEventListener('mouseup', () => {
+    if (!drag) return;
+    const x = Math.min(drag.x0, drag.x1) / scale, y = Math.min(drag.y0, drag.y1) / scale;
+    const w = Math.abs(drag.x1 - drag.x0) / scale, h = Math.abs(drag.y1 - drag.y0) / scale;
+    drag = null;
+    if (w < 6 || h < 6) { draw(); return; }
+    addItem(Math.round(x), Math.round(y), Math.round(w), Math.round(h));
+  });
+
+  function crop(x, y, w, h) {
+    const c = document.createElement('canvas');
+    c.width = w; c.height = h;
+    c.getContext('2d').drawImage(pages[cur].img, x, y, w, h, 0, 0, w, h);
+    return c.toDataURL('image/png');
+  }
+
+  function nextCode() {
+    const v = $('next-code').value.trim();
+    const m = v.match(/^(.*?)(\d+)$/);
+    $('next-code').value = m ? m[1] + String(+m[2] + 1).padStart(m[2].length, '0') : v;
+    return v;
+  }
+
+  function addItem(x, y, w, h) {
+    const prev = items[items.length - 1];
+    items.push({
+      page: cur, x, y, w, h, image: crop(x, y, w, h), code: nextCode(), name: '',
+      geometry: prev ? prev.geometry : 'point', category: prev ? prev.category : '', description: '', dash: '', arrow: '',
+    });
+    select(items.length - 1);
+    renderPages();
+    setTimeout(() => { const el = document.querySelector(`.item[data-k="${selected}"] input[data-f="name"]`); if (el) el.focus(); }, 0);
+  }
+
+  function select(k) {
+    selected = k;
+    if (k >= 0 && items[k].page !== cur) { cur = items[k].page; fit(); renderPages(); }
+    draw(); renderItems();
+  }
+
+  function renderItems() {
+    $('items').innerHTML = items.map((t, k) => `
+      <div class="item${k === selected ? ' on' : ''}" data-k="${k}">
+        <img src="${t.image}">
+        <div class="f">
+          <input data-f="code" value="${esc(t.code)}" placeholder="编号">
+          <input data-f="name" value="${esc(t.name)}" placeholder="名称">
+          <select data-f="geometry">
+            <option value="point"${t.geometry === 'point' ? ' selected' : ''}>点状</option>
+            <option value="line"${t.geometry === 'line' ? ' selected' : ''}>线状</option>
+            <option value="polygon"${t.geometry === 'polygon' ? ' selected' : ''}>面状</option>
+          </select>
+          <input data-f="category" value="${esc(t.category)}" placeholder="分类，如 指挥机构">
+          ${t.geometry === 'point' ? '' : `
+          <select data-f="dash">
+            <option value=""${!t.dash ? ' selected' : ''}>实线</option>
+            <option value="8,6"${t.dash === '8,6' ? ' selected' : ''}>虚线</option>
+            <option value="10,4,2,4"${t.dash === '10,4,2,4' ? ' selected' : ''}>点划线</option>
+          </select>
+          <select data-f="arrow">
+            <option value=""${!t.arrow ? ' selected' : ''}>无箭头</option>
+            <option value="open"${t.arrow === 'open' ? ' selected' : ''}>开口箭头</option>
+            <option value="filled"${t.arrow === 'filled' ? ' selected' : ''}>实心箭头</option>
+          </select>`}
+          <input class="full" data-f="description" value="${esc(t.description)}" placeholder="标绘要领/说明（可选）">
+          <button class="del" data-del="${k}">删除</button>
+        </div>
+      </div>`).reverse().join('');
+  }
+
+  $('items').addEventListener('input', e => {
+    const box = e.target.closest('.item'), f = e.target.dataset.f;
+    if (box && f) { items[+box.dataset.k][f] = e.target.value; if (f === 'code') draw(); if (f === 'geometry') renderItems(); }
+  });
+  $('items').addEventListener('click', e => {
+    if (e.target.dataset.del !== undefined) { items.splice(+e.target.dataset.del, 1); selected = -1; draw(); renderItems(); renderPages(); return; }
+    const box = e.target.closest('.item');
+    if (box && e.target.tagName === 'IMG') select(+box.dataset.k);
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Delete' && selected >= 0 && !/INPUT|SELECT/.test(document.activeElement.tagName)) {
+      items.splice(selected, 1); selected = -1; draw(); renderItems(); renderPages();
+    }
+  });
+
+  $('btn-export').onclick = () => {
+    if (!items.length) return alert('还没有框选任何标号');
+    const unnamed = items.filter(t => !t.name.trim()).length;
+    if (unnamed && !confirm(`有 ${unnamed} 个标号未填名称（将以编号代替），继续导出？`)) return;
+    const data = {
+      format: 'rescue-plot-capture-v1', source: $('source').value.trim(),
+      items: items.map(({ image, code, name, geometry, category, description, dash, arrow }) =>
+        ({ image, code, name, geometry, category, description, ...(geometry === 'point' ? {} : { dash, arrow }) })),
+    };
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([JSON.stringify(data)], { type: 'application/json' }));
+    a.download = '标号采集结果.json';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  };
+
+  window.cropperApp = { get items() { return items; }, addItemAt: (x, y, w, h) => addItem(x, y, w, h), show };
+})();
+</script>
+</body>
+</html>

@@ -2,3 +2,6 @@ refs/*.pdf
 refs/pages/
 refs/gb/
 tile_cache/
+# 本单位标号（内部资料，仅保存在本机）
+symbols/local/
+app/local_symbols.js
